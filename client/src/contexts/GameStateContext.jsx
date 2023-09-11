@@ -16,7 +16,7 @@ export const GameStateProvider = ({ children }) => {
 export const useGameState = () => {
   const context = useContext(GameStateContext);
   if (context === undefined) {
-    throw new Error(' Must be used within a GameStateProvider');
+    throw new Error('Error: useGameState ');
   }
   return context;
 };

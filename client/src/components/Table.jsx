@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
+import cards from '../../../assets/cards/index.js';
 
 function Table({ communityCards, pot }) {
   return (

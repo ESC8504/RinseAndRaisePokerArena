@@ -7,16 +7,26 @@ import { useGameState } from '../contexts/GameStateContext.jsx';
 function GameScreen() {
   const { gameState, dispatch } = useGameState();
 
-  // This useEffect hook is used to dispatch the DEAL_CARDS action when the GameScreen component mounts. Without this it will have the same poker cards.
+  // This useEffect hook is used to dispatch the actions when the GameScreen component mounts.
   useEffect(() => {
     dispatch({ type: 'DEAL_CARDS' });
+    dispatch({ type: 'POST_BLINDS' });
+    return () => {
+      dispatch({ type: 'RESTART_GAME' });
+    };
   }, [dispatch]);
 
   return (
     <View style={styles.game}>
-      <Player playerData={gameState.player1} />
+      <Player
+        playerData={gameState.players[0]}
+        isCurrentPlayer={gameState.currentPlayerIndex === 0}
+      />
       <Table communityCards={gameState.communityCards} pot={gameState.pot} />
-      <Player playerData={gameState.player2} />
+      <Player
+        playerData={gameState.players[1]}
+        isCurrentPlayer={gameState.currentPlayerIndex === 1}
+      />
     </View>
   );
 }

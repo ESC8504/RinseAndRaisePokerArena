@@ -2,8 +2,11 @@ import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder, Image } from 'react-native';
 import cards from '../../../assets/cards/index.js';
 import Card from './Card.jsx';
+import GameControls from './GameControls.jsx';
+import { useGameState } from '../contexts/GameStateContext.jsx';
 
-function Player({ playerData, isCurrentPlayer }) {
+function Player({ playerData, isCurrentPlayer, position }) {
+  const { gameState, dispatch } = useGameState();
   // Use a reference to store the Animated values for X and Y positions.
   const animatedValues = useRef(new Animated.ValueXY()).current;
   // Array of refs hold Value for each card, initially set to -200 (outside of the screen).
@@ -14,8 +17,9 @@ function Player({ playerData, isCurrentPlayer }) {
       cardAnimationRefs[i] = new Animated.Value(-200);
     }
   }
-
   useEffect(() => {
+    // Reset animated values back to -100
+    cardAnimationRefs.forEach((animation) => animation.setValue(-100));
     // Add this to aviod bug with cards not coming down in the first render
     if (playerData.cards) {
       // Execute animations in a staggered mannser delay 200ms each card
@@ -33,6 +37,7 @@ function Player({ playerData, isCurrentPlayer }) {
       )).start();
     }
   }, [playerData.cards]);
+
   // Create a PanResponder to handle touch gestures.
   const panResponder = PanResponder.create({
     // Allow the responder to be the target.
@@ -51,40 +56,67 @@ function Player({ playerData, isCurrentPlayer }) {
       }).start();
     },
   });
+
+  const handleCall = () => {
+    dispatch({ type: 'CALL' });
+  };
+
+  const handleFold = () => {
+    dispatch({ type: 'FOLD' });
+    dispatch({ type: 'ROTATE_BLINDS' });
+    dispatch({ type: 'RESHUFFLE' });
+    dispatch({ type: 'DEAL_CARDS' });
+  };
+
+  const playerStyle = position === 'top' ? styles.topPlayer : styles.bottomPlayer;
+
   return (
-    <View style={styles.player} {...panResponder.panHandlers}>
+    <View style={[styles.player, playerStyle]} {...panResponder.panHandlers}>
       <Text style={styles.indicator}>Amount In Front: {playerData.amountInFront}</Text>
-      {/* conditional redenring */}
+      {/* conditional rendering */}
       {isCurrentPlayer && <Text style={styles.indicator}>Your Turn</Text>}
-      <View style={styles.cardsContainer}>
-        {playerData.cards.map((card, i) => (
-          <Animated.View key={i} style={{ transform: [{ translateY: cardAnimationRefs[i] }] }}>
-            <Card cardCode={card} animatedValue={animatedValues.x} />
-          </Animated.View>
-        ))}
+
+      <View style={styles.cardsAndControlsContainer}>
+        <View style={styles.cardsContainer}>
+          {playerData.cards.map((card, i) => (
+            <Animated.View key={i} style={{ transform: [{ translateY: cardAnimationRefs[i] }] }}>
+              <Card cardCode={card} animatedValue={animatedValues.x} />
+            </Animated.View>
+          ))}
+        </View>
+
+        {isCurrentPlayer && (
+          <View style={styles.gameControls}>
+            <GameControls onCall={handleCall} onFold={handleFold} />
+          </View>
+        )}
       </View>
+
       <Text>Chips: {playerData.chips}</Text>
       <Text>Current Bet: {playerData.currentBet}</Text>
       <Text>Status: {playerData.status}</Text>
-      {/* Going to add action button here probably */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  player: {
+  topPlayer: {
     padding: 10,
     borderColor: '#ccc',
     borderWidth: 1,
-    width: 200,
+    width: '100%',
+    alignSelf: 'center',
+    transform: [{ rotate: '180deg' }],
   },
-  card: {
-    width: 50,
-    height: 70,
-    margin: 2,
-    backgroundColor: 'red'
+  bottomPlayer: {
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    width: '100%',
+    alignSelf: 'center',
   },
   cardsContainer: {
+    flex: 3,
     flexDirection: 'row',
   },
   indicator: {
@@ -92,6 +124,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'yellow',
     padding: 5,
     borderRadius: 5,
+  },
+  cardsAndControlsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
 });
 

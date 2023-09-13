@@ -2,11 +2,13 @@ import {
   DEAL_CARDS,
   POST_BLINDS,
   BET,
+  ROTATE_BLINDS,
   CALL,
   RAISE,
   FOLD,
   WIN_ROUND,
   PROCEED_TO_NEXT_ROUND,
+  RESHUFFLE,
   RESTART_GAME,
 } from './GameActions.jsx';
 
@@ -70,8 +72,8 @@ export const initialState = {
   deck: initializeDeck(),
 };
 
-
 export const gameReducer = (state, action) => {
+  console.log("Dispatched action:", action.type);
   switch (action.type) {
     case DEAL_CARDS: {
       let updatedPlayers = [...state.players];
@@ -113,41 +115,101 @@ export const gameReducer = (state, action) => {
       };
     }
     // case BET: {
-    //   const currentPlayerData = state.players.find(player => player.id === action.playerId);
-    //   const updatedPlayers = state.players.map(player => {
-    //     if (player.id === action.playerId) {
-    //       return {
-    //         ...player,
-    //         chips: player.chips - action.amount,
-    //         currentBet: action.amount,
-    //         moves: [...player.moves, { type: 'BET', amount: action.amount }],
-    //       };
-    //     }
+    //   const currentPlayer = { ...state.players[state.currentPlayerIndex] };
+    //   const betAmount = action.payload;
+    //   currentPlayer.chips -= betAmount;
+    //   currentPlayer.amountInFront += betAmount;
+    //   currentPlayer.currentBet = betAmount;
+
+    //   const updatedPlayers = state.players.map((player, index) => {
+    //     if (index === state.currentPlayerIndex) return currentPlayer;
     //     return player;
     //   });
-    //   return {
-    //     ...state,
-    //     players: updatedPlayers,
-    //     pot: state.pot + action.amount,
-    //   };
-    // }
-    // case CALL: {
-    //   const currentPlayerId = state.currentPlayer;
-    //   const otherPlayerId = currentPlayerId === 'player1ID' ? 'player2ID' : 'player1ID';
-    //   const highestBet = Math.max(state.player1.currentBet, state.player2.currentBet);
-    //   const callAmount = highestBet - state[currentPlayerId].currentBet;
 
     //   return {
     //     ...state,
-    //     [currentPlayerId]: {
-    //       ...state[currentPlayerId],
-    //       chips: state[currentPlayerId].chips - callAmount,
-    //       currentBet: highestBet,
-    //       moves: [...state[currentPlayerId].moves, 'call']
-    //     },
-    //     pot: state.pot + callAmount
+    //     players: updatedPlayers,
+    //     pot: state.pot + betAmount,
     //   };
     // }
+    case FOLD: {
+      const currentPlayer = { ...state.players[state.currentPlayerIndex] };
+      currentPlayer.status = 'folded';
+
+      let remainingPlayerIndex = state.currentPlayerIndex + 1;
+      // Check if the player is already the last player
+      if (remainingPlayerIndex >= state.players.length) {
+        remainingPlayerIndex = 0;
+      }
+      const remainingPlayer = { ...state.players[remainingPlayerIndex] };
+      remainingPlayer.chips += state.pot;
+
+      let updatedPlayers = [...state.players];
+
+      for (let i = 0; i < updatedPlayers.length; i += 1) {
+        if (i === state.currentPlayerIndex) {
+          updatedPlayers[i] = currentPlayer;
+        } else if (i === remainingPlayerIndex) {
+          updatedPlayers[i] = remainingPlayer;
+        }
+      }
+
+      return {
+        ...state,
+        players: updatedPlayers,
+        pot: 0,
+      };
+    }
+
+    case ROTATE_BLINDS: {
+      // Rotate the blinds and check the position
+      let newSmallBlindIndex = state.blinds.smallBlindPlayerIndex + 1;
+      if (newSmallBlindIndex >= state.players.length) {
+        newSmallBlindIndex = 0;
+      }
+      let newBigBlindIndex = state.blinds.bigBlindPlayerIndex + 1;
+      if (newBigBlindIndex >= state.players.length) {
+        newBigBlindIndex = 0;
+      }
+
+      const updatedPlayers = [...state.players];
+
+      //  Set the amount in front for blinds after - blinds
+      updatedPlayers[newSmallBlindIndex].chips -= state.blinds.small;
+      updatedPlayers[newSmallBlindIndex].amountInFront = state.blinds.small;
+
+      updatedPlayers[newBigBlindIndex].chips -= state.blinds.big;
+      updatedPlayers[newBigBlindIndex].amountInFront = state.blinds.big;
+
+      // Reset the amountInFront for players
+      for (let i = 0; i < updatedPlayers.length; i++) {
+        if (i !== newSmallBlindIndex && i !== newBigBlindIndex) {
+          updatedPlayers[i].amountInFront = 0;
+        }
+      }
+
+      const newPot = state.blinds.small + state.blinds.big;
+      // go to the next player
+      let nextPlayerIndex = state.currentPlayerIndex + 1;
+      if (nextPlayerIndex >= state.players.length) {
+        nextPlayerIndex = 0;
+      }
+
+      return {
+        ...state,
+        pot: newPot,
+        players: updatedPlayers,
+        blinds: {
+          ...state.blinds,
+          smallBlindPlayerIndex: newSmallBlindIndex,
+          bigBlindPlayerIndex: newBigBlindIndex,
+        },
+        currentPlayerIndex: nextPlayerIndex,
+      };
+    }
+
+
+
 
     // case PROCEED_TO_NEXT_ROUND: {
     //   let nextRound = '';
@@ -194,6 +256,12 @@ export const gameReducer = (state, action) => {
     //     },
     //   };
     // }
+    case RESHUFFLE: {
+      return {
+        ...state,
+        deck: initializeDeck(),
+      };
+    }
     case RESTART_GAME: {
       return {
         ...initialState,

@@ -21,11 +21,13 @@ function GameScreen() {
       <Player
         playerData={gameState.players[0]}
         isCurrentPlayer={gameState.currentPlayerIndex === 0}
+        position="top"
       />
       <Table communityCards={gameState.communityCards} pot={gameState.pot} />
       <Player
         playerData={gameState.players[1]}
         isCurrentPlayer={gameState.currentPlayerIndex === 1}
+        position="bottom"
       />
     </View>
   );

@@ -55,7 +55,7 @@ const cards = {
   'KS': require('./spades_king.png'),
   'AS': require('./spades_ace.png'),
 
-  'BACK': require('./cars_back.png')
+  'BACK': require('./back_1.png')
 };
 
 export default cards;

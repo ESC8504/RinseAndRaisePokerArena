@@ -1,9 +1,11 @@
+import { Alert } from 'react-native';
 import {
   DEAL_CARDS,
   POST_BLINDS,
   BET,
   ROTATE_BLINDS,
   CALL,
+  CHECK,
   RAISE,
   FOLD,
   WIN_ROUND,
@@ -60,6 +62,7 @@ export const initialState = {
     },
   ],
   currentPlayerIndex: 0,
+  lastActedPlayerIndex: null,
   communityCards: [],
   pot: 0,
   round: 'pre-flop',
@@ -73,7 +76,6 @@ export const initialState = {
 };
 
 export const gameReducer = (state, action) => {
-  console.log("Dispatched action:", action.type);
   switch (action.type) {
     case DEAL_CARDS: {
       let updatedPlayers = [...state.players];
@@ -208,54 +210,131 @@ export const gameReducer = (state, action) => {
       };
     }
 
+    case PROCEED_TO_NEXT_ROUND: {
+      let nextRound = '';
+      let newCommunityCards = [...state.communityCards];
+      let remainingDeck = [...state.deck];
+      let dealtCards = [];
+
+      switch (state.round) {
+        case 'pre-flop':
+          nextRound = 'flop';
+          ({ dealtCards, remainingDeck } = dealCardsFromDeck(remainingDeck, 3));
+          newCommunityCards = [...newCommunityCards, ...dealtCards];
+          break;
+        case 'flop':
+          nextRound = 'turn';
+          ({ dealtCards, remainingDeck } = dealCardsFromDeck(remainingDeck, 1));
+          newCommunityCards = [...newCommunityCards, ...dealtCards];
+          break;
+        case 'turn':
+          nextRound = 'river';
+          ({ dealtCards, remainingDeck } = dealCardsFromDeck(remainingDeck, 1));
+          newCommunityCards = [...newCommunityCards, ...dealtCards];
+          break;
+        case 'river':
+          nextRound = 'showdown';
+          break;
+        default:
+          break;
+      }
+
+      let nextPlayerIndex = null;
+      if (state.round === 'pre-flop') {
+        // If it's pre-flop, the next action starts with the big blind
+        nextPlayerIndex = state.blinds.bigBlindPlayerIndex;
+      } else {
+        // For flop, turn, river street, action starts with the player after the current player
+        nextPlayerIndex = (state.currentPlayerIndex === 0) ? 1 : 0;
+      }
+
+      return {
+        ...state,
+        communityCards: newCommunityCards,
+        round: nextRound,
+        deck: remainingDeck,
+        currentPlayerIndex: nextPlayerIndex,
+        lastActedPlayerIndex: null,
+      }
+    }
+
+    case CALL: {
+      const currentPlayer = { ...state.players[state.currentPlayerIndex] };
+      const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+      const opponentPlayer = { ...state.players[opponentIndex] };
+
+      if (currentPlayer.amountInFront === opponentPlayer.amountInFront) {
+        Alert.alert(
+          'There Is No Bet To Call!',
+          'Please choose another action'
+            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+        );
+        return state;
+      }
+
+      const amountToCall = opponentPlayer.amountInFront - currentPlayer.amountInFront;
+
+      currentPlayer.chips -= amountToCall;
+      currentPlayer.amountInFront += amountToCall;
+
+      const updatedPlayers = [...state.players];
+
+      for (let i = 0; i < updatedPlayers.length; i += 2) {
+        if (i === state.currentPlayerIndex) {
+          updatedPlayers[i] = currentPlayer;
+        }
+      }
+
+      const newState = {
+        ...state,
+        players: updatedPlayers,
+        pot: state.pot + amountToCall,
+        lastActedPlayerIndex: state.currentPlayerIndex,
+      };
+
+      // If both players have acted, go to the next round
+      if (state.lastActedPlayerIndex !== null
+        && state.lastActedPlayerIndex !== state.currentPlayerIndex) {
+        return gameReducer(newState, { type: PROCEED_TO_NEXT_ROUND });
+      }
+
+      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+
+      return {
+        ...newState,
+        currentPlayerIndex: newCurrentPlayerIndex,
+      };
+    }
 
 
+    case CHECK: {
+      if (state.round === 'pre-flop' && state.currentPlayerIndex !== state.blinds.bigBlindPlayerIndex) {
+        Alert.alert(
+          "You Can't Check!",
+          'Please choose another action'
+            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+        );
+        return state;
+      }
 
-    // case PROCEED_TO_NEXT_ROUND: {
-    //   let nextRound = '';
-    //   let newCommunityCards = [...state.communityCards];
-    //   let remainingDeck = [...state.deck];
-    //   let dealtCards = [];
+      const newState = {
+        ...state,
+        lastActedPlayerIndex: state.currentPlayerIndex,
+      };
 
-    //   switch (state.round) {
-    //     case 'pre-flop':
-    //       nextRound = 'flop';
-    //       ({ dealtCards, remainingDeck } = dealCardsFromDeck(remainingDeck, 3));
-    //       newCommunityCards = [...newCommunityCards, ...dealtCards];
-    //       break;
-    //     case 'flop':
-    //       nextRound = 'turn';
-    //       ({ dealtCards, remainingDeck } = dealCardsFromDeck(remainingDeck, 1));
-    //       newCommunityCards = [...newCommunityCards, ...dealtCards];
-    //       break;
-    //     case 'turn':
-    //       nextRound = 'river';
-    //       ({ dealtCards, remainingDeck } = dealCardsFromDeck(remainingDeck, 1));
-    //       newCommunityCards = [...newCommunityCards, ...dealtCards];
-    //       break;
-    //     case 'river':
-    //       nextRound = 'showdown';
-    //       break;
-    //     default:
-    //       break;
-    //   }
-    //   let isCardsFaceUp = state.round === 'river' ? true : false;
-    //   const newSmallBlindIndex = (state.blinds.smallBlindPlayerIndex + 1) % state.players.length;
-    //   const newBigBlindIndex = (state.blinds.bigBlindPlayerIndex + 1) % state.players.length;
-    //   const newCurrentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
-    //   return {
-    //     ...state,
-    //     communityCards: newCommunityCards,
-    //     round: nextRound,
-    //     deck: remainingDeck,
-    //     currentPlayerIndex: newCurrentPlayerIndex,
-    //     blinds: {
-    //       ...state.blinds,
-    //       smallBlindPlayerIndex: newSmallBlindIndex,
-    //       bigBlindPlayerIndex: newBigBlindIndex,
-    //     },
-    //   };
-    // }
+      // If both players have acted, go to the next round
+      if (state.lastActedPlayerIndex !== null
+        && state.lastActedPlayerIndex !== state.currentPlayerIndex) {
+        return gameReducer(newState, { type: PROCEED_TO_NEXT_ROUND });
+      }
+      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+      return {
+        ...newState,
+        currentPlayerIndex: newCurrentPlayerIndex
+      };
+    }
+
+
     case RESHUFFLE: {
       return {
         ...state,

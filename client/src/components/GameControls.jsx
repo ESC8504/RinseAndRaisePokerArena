@@ -1,20 +1,35 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
+import { useGameState } from '../contexts/GameStateContext.jsx';
 
-function GameControls({ onCall, onFold }) {
+function GameControls({ onCall, onFold, onCheck }) {
+  const { gameState } = useGameState();
+
+  const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+  const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
+  const opponentPlayer = gameState.players[opponentIndex];
+
+  const canShowCall = currentPlayer.amountInFront < opponentPlayer.amountInFront;
+  const canShowCheck = (
+    currentPlayer.amountInFront === opponentPlayer.amountInFront
+    && (gameState.round !== 'pre-flop'
+    || gameState.currentPlayerIndex === gameState.blinds.bigBlindPlayerIndex)
+  );
   return (
     <>
-      <Button
-        mode="elevated"
-        dark
-        useForeground
-        onPress={onCall}
-        style={styles.callButton}
-        labelStyle={styles.buttonLabel}
-      >
-        Call
-      </Button>
+      {canShowCall && (
+        <Button
+          mode="elevated"
+          dark
+          useForeground
+          onPress={onCall}
+          style={styles.callButton}
+          labelStyle={styles.buttonLabel}
+        >
+          Call
+        </Button>
+      )}
 
       <Button
         mode="elevated"
@@ -26,6 +41,19 @@ function GameControls({ onCall, onFold }) {
       >
         Fold
       </Button>
+
+      {canShowCheck && (
+        <Button
+          mode="elevated"
+          dark
+          useForeground
+          onPress={onCheck}
+          style={styles.checkButton}
+          labelStyle={styles.buttonLabel}
+        >
+          Check
+        </Button>
+      )}
     </>
   );
 }
@@ -33,7 +61,7 @@ function GameControls({ onCall, onFold }) {
 const styles = StyleSheet.create({
   callButton: {
     backgroundColor: '#4CAF50',
-    width: '50%',
+    width: '100%',
     paddingVertical: 10,
     borderRadius: 10,
     marginBottom: '5%',
@@ -41,13 +69,22 @@ const styles = StyleSheet.create({
   },
   foldButton: {
     backgroundColor: '#f44336',
-    width: '50%',
+    width: '100%',
     paddingVertical: 10,
     borderRadius: 10,
+    marginBottom: '5%',
+    transform: [{ scale: 1 }],
+  },
+  checkButton: {
+    backgroundColor: '#2196F3',
+    width: '100%',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: '5%',
     transform: [{ scale: 1 }],
   },
   buttonLabel: {
-    fontSize: 7,
+    fontSize: 12,
     color: 'white',
   },
 });

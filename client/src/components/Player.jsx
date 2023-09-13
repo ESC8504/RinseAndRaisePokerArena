@@ -68,6 +68,10 @@ function Player({ playerData, isCurrentPlayer, position }) {
     dispatch({ type: 'DEAL_CARDS' });
   };
 
+  const handleCheck = () => {
+    dispatch({ type: 'CHECK' });
+  }
+
   const playerStyle = position === 'top' ? styles.topPlayer : styles.bottomPlayer;
 
   return (
@@ -87,7 +91,7 @@ function Player({ playerData, isCurrentPlayer, position }) {
 
         {isCurrentPlayer && (
           <View style={styles.gameControls}>
-            <GameControls onCall={handleCall} onFold={handleFold} />
+            <GameControls onCall={handleCall} onFold={handleFold} onCheck={handleCheck} />
           </View>
         )}
       </View>

@@ -9,3 +9,4 @@ export const RESTART_GAME = 'RESTART_GAME';
 export const POST_BLINDS = 'POST_BLINDS';
 export const RESHUFFLE = 'RESHUFFLE';
 export const ROTATE_BLINDS = 'ROTATE_BLINDS';
+export const CHECK = 'CHECK';

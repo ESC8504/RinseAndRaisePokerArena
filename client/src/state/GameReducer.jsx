@@ -176,7 +176,7 @@ export const gameReducer = (state, action) => {
 
       const updatedPlayers = [...state.players];
 
-      //  Set the amount in front for blinds after - blinds
+      //  Set the amount in front for blinds after -(minus) blinds
       updatedPlayers[newSmallBlindIndex].chips -= state.blinds.small;
       updatedPlayers[newSmallBlindIndex].amountInFront = state.blinds.small;
 
@@ -191,7 +191,7 @@ export const gameReducer = (state, action) => {
       }
 
       const newPot = state.blinds.small + state.blinds.big;
-      // go to the next player
+      // Go to the next player
       let nextPlayerIndex = state.currentPlayerIndex + 1;
       if (nextPlayerIndex >= state.players.length) {
         nextPlayerIndex = 0;
@@ -248,6 +248,12 @@ export const gameReducer = (state, action) => {
         nextPlayerIndex = (state.currentPlayerIndex === 0) ? 1 : 0;
       }
 
+      // Reset amountInFront to 0
+      const updatedPlayers = state.players.map((player) => ({
+        ...player,
+        amountInFront: 0,
+      }));
+
       return {
         ...state,
         communityCards: newCommunityCards,
@@ -255,8 +261,10 @@ export const gameReducer = (state, action) => {
         deck: remainingDeck,
         currentPlayerIndex: nextPlayerIndex,
         lastActedPlayerIndex: null,
+        players: updatedPlayers,
       }
     }
+
 
     case CALL: {
       const currentPlayer = { ...state.players[state.currentPlayerIndex] };
@@ -333,7 +341,32 @@ export const gameReducer = (state, action) => {
         currentPlayerIndex: newCurrentPlayerIndex
       };
     }
+    case RAISE: {
+      const currentPlayer = { ...state.players[state.currentPlayerIndex] };
+      const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+      const opponentPlayer = { ...state.players[opponentIndex] };
 
+      const raiseAmount = action.payload;
+
+      currentPlayer.chips -= raiseAmount;
+      currentPlayer.amountInFront += raiseAmount;
+      const updatedPlayers = [...state.players];
+      updatedPlayers[state.currentPlayerIndex] = currentPlayer;
+
+      const newState = {
+        ...state,
+        players: updatedPlayers,
+        pot: state.pot + raiseAmount,
+        lastActedPlayerIndex: state.currentPlayerIndex,
+      };
+
+      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+
+      return {
+        ...newState,
+        currentPlayerIndex: newCurrentPlayerIndex,
+      };
+    }
 
     case RESHUFFLE: {
       return {

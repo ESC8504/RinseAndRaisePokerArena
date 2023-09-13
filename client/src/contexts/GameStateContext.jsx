@@ -5,9 +5,24 @@ const GameStateContext = createContext();
 
 export const GameStateProvider = ({ children }) => {
   const [gameState, dispatch] = useReducer(gameReducer, initialState);
+  const isPreFlop = () => gameState.round === 'pre-flop';
+  const isCurrentPlayerSmallBlind = () => gameState.currentPlayerIndex === gameState.blinds.smallBlindPlayerIndex;
+  const isSmallBlindPreFlop = () => isPreFlop() && isCurrentPlayerSmallBlind();
+
+  const currentPlayerData = gameState.players[gameState.currentPlayerIndex];
+  const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
+  const opponentData = gameState.players[opponentIndex];
 
   return (
-    <GameStateContext.Provider value={{ gameState, dispatch }}>
+    <GameStateContext.Provider value={{
+      gameState,
+      dispatch,
+      isPreFlop,
+      isCurrentPlayerSmallBlind,
+      isSmallBlindPreFlop,
+      currentPlayerData,
+      opponentData
+    }}>
       {children}
     </GameStateContext.Provider>
   );

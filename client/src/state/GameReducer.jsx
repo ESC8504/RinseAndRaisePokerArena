@@ -116,24 +116,32 @@ export const gameReducer = (state, action) => {
         players: updatedPlayers,
       };
     }
-    // case BET: {
-    //   const currentPlayer = { ...state.players[state.currentPlayerIndex] };
-    //   const betAmount = action.payload;
-    //   currentPlayer.chips -= betAmount;
-    //   currentPlayer.amountInFront += betAmount;
-    //   currentPlayer.currentBet = betAmount;
+    case BET: {
+      const currentPlayer = { ...state.players[state.currentPlayerIndex] };
+      const betAmount = action.payload;
 
-    //   const updatedPlayers = state.players.map((player, index) => {
-    //     if (index === state.currentPlayerIndex) return currentPlayer;
-    //     return player;
-    //   });
+      currentPlayer.chips -= betAmount;
+      currentPlayer.amountInFront += betAmount;
+      currentPlayer.currentBet = betAmount;
 
-    //   return {
-    //     ...state,
-    //     players: updatedPlayers,
-    //     pot: state.pot + betAmount,
-    //   };
-    // }
+      let updatedPlayers = [...state.players];
+
+      for (let i = 0; i < updatedPlayers.length; i += 1) {
+        if (i === state.currentPlayerIndex) {
+          updatedPlayers[i] = currentPlayer;
+        }
+      }
+
+      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+      return {
+        ...state,
+        players: updatedPlayers,
+        pot: state.pot + betAmount,
+        lastActedPlayerIndex: state.currentPlayerIndex,
+        currentPlayerIndex: newCurrentPlayerIndex,
+      };
+    }
+
     case FOLD: {
       const currentPlayer = { ...state.players[state.currentPlayerIndex] };
       currentPlayer.status = 'folded';
@@ -239,15 +247,7 @@ export const gameReducer = (state, action) => {
           break;
       }
 
-      let nextPlayerIndex = null;
-      if (state.round === 'pre-flop') {
-        // If it's pre-flop, the next action starts with the big blind
-        nextPlayerIndex = state.blinds.bigBlindPlayerIndex;
-      } else {
-        // For flop, turn, river street, action starts with the player after the current player
-        nextPlayerIndex = (state.currentPlayerIndex === 0) ? 1 : 0;
-      }
-
+      let nextPlayerIndex = state.blinds.bigBlindPlayerIndex;
       // Reset amountInFront to 0
       const updatedPlayers = state.players.map((player) => ({
         ...player,
@@ -287,7 +287,7 @@ export const gameReducer = (state, action) => {
 
       const updatedPlayers = [...state.players];
 
-      for (let i = 0; i < updatedPlayers.length; i += 2) {
+      for (let i = 0; i < updatedPlayers.length; i += 1) {
         if (i === state.currentPlayerIndex) {
           updatedPlayers[i] = currentPlayer;
         }

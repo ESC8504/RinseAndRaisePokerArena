@@ -74,22 +74,32 @@ function Player({ playerData, gameBlinds, position }) {
 
   const handleCheck = () => {
     dispatch({ type: 'CHECK' });
-  }
+  };
 
   const handleRaise = () => {
     setSliderVisible(true);
   }
 
-  const handleSliderConfirm = (value) => {
+  const handleRaiseSliderConfirm = (value) => {
     dispatch({ type: 'RAISE', payload: value });
     setSliderVisible(false);
-  }
+  };
 
   const handleSliderCancel = () => {
     setSliderVisible(false);
-  }
+  };
+
+  const handleBet = () => {
+    setSliderVisible(true);
+  };
+
+  const handleBetSliderConfirm = (value) => {
+    dispatch({ type: 'RAISE', payload: value });
+    setSliderVisible(false);
+  };
 
   const playerStyle = position === 'top' ? styles.topPlayer : styles.bottomPlayer;
+
   const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
   const opponentAmountInFront = gameState.players[opponentIndex].amountInFront;
 
@@ -116,6 +126,7 @@ function Player({ playerData, gameBlinds, position }) {
                 onFold={handleFold}
                 onCheck={handleCheck}
                 onRaise={handleRaise}
+                onBet={handleBet}
               />
             </View>
           )}
@@ -127,7 +138,16 @@ function Player({ playerData, gameBlinds, position }) {
       </View>
       <GameSlider
         isVisible={isSliderVisible}
-        onConfirm={handleSliderConfirm}
+        onConfirm={handleRaiseSliderConfirm}
+        onCancel={handleSliderCancel}
+        maxChips={playerData.chips}
+        bigBlind={gameBlinds.big}
+        playerAmountInFront={playerData.amountInFront}
+        opponentAmountInFront={opponentAmountInFront}
+      />
+      <GameSlider
+        isVisible={isSliderVisible}
+        onConfirm={handleBetSliderConfirm}
         onCancel={handleSliderCancel}
         maxChips={playerData.chips}
         bigBlind={gameBlinds.big}

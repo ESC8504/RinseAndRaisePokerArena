@@ -1,12 +1,16 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Animated, PanResponder, Image } from 'react-native';
+import { View, Text, StyleSheet, Animated, PanResponder, Image, Modal, Button } from 'react-native';
 import cards from '../../../assets/cards/index.js';
 import Card from './Card.jsx';
+import GameSlider from './GameSlider.jsx'
 import GameControls from './GameControls.jsx';
 import { useGameState } from '../contexts/GameStateContext.jsx';
 
-function Player({ playerData, isCurrentPlayer, position }) {
-  const { gameState, dispatch } = useGameState();
+function Player({ playerData, gameBlinds, position }) {
+  const { gameState, dispatch, currentPlayerData, opponentData } = useGameState();
+  const isCurrentPlayer = gameState.currentPlayerIndex === (position === 'top' ? 0 : 1);
+  const [isSliderVisible, setSliderVisible] = useState(false);
+  const [sliderValue, setSliderValue] = useState(0);
   // Use a reference to store the Animated values for X and Y positions.
   const animatedValues = useRef(new Animated.ValueXY()).current;
   // Array of refs hold Value for each card, initially set to -200 (outside of the screen).
@@ -72,34 +76,65 @@ function Player({ playerData, isCurrentPlayer, position }) {
     dispatch({ type: 'CHECK' });
   }
 
+  const handleRaise = () => {
+    setSliderVisible(true);
+  }
+
+  const handleSliderConfirm = (value) => {
+    dispatch({ type: 'RAISE', payload: value });
+    setSliderVisible(false);
+  }
+
+  const handleSliderCancel = () => {
+    setSliderVisible(false);
+  }
+
   const playerStyle = position === 'top' ? styles.topPlayer : styles.bottomPlayer;
+  const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
+  const opponentAmountInFront = gameState.players[opponentIndex].amountInFront;
 
   return (
-    <View style={[styles.player, playerStyle]} {...panResponder.panHandlers}>
-      <Text style={styles.indicator}>Amount In Front: {playerData.amountInFront}</Text>
-      {/* conditional rendering */}
-      {isCurrentPlayer && <Text style={styles.indicator}>Your Turn</Text>}
+    <>
+      <View style={[styles.player, playerStyle]} {...panResponder.panHandlers}>
+        <Text style={styles.indicator}>Amount In Front: {playerData.amountInFront}</Text>
+        {/* conditional rendering */}
+        {isCurrentPlayer && <Text style={styles.indicator}>Your Turn</Text>}
 
-      <View style={styles.cardsAndControlsContainer}>
-        <View style={styles.cardsContainer}>
-          {playerData.cards.map((card, i) => (
-            <Animated.View key={i} style={{ transform: [{ translateY: cardAnimationRefs[i] }] }}>
-              <Card cardCode={card} animatedValue={animatedValues.x} />
-            </Animated.View>
-          ))}
+        <View style={styles.cardsAndControlsContainer}>
+          <View style={styles.cardsContainer}>
+            {playerData.cards.map((card, i) => (
+              <Animated.View key={i} style={{ transform: [{ translateY: cardAnimationRefs[i] }] }}>
+                <Card cardCode={card} animatedValue={animatedValues.x} />
+              </Animated.View>
+            ))}
+          </View>
+
+          {isCurrentPlayer && (
+            <View style={styles.gameControls}>
+              <GameControls
+                onCall={handleCall}
+                onFold={handleFold}
+                onCheck={handleCheck}
+                onRaise={handleRaise}
+              />
+            </View>
+          )}
         </View>
 
-        {isCurrentPlayer && (
-          <View style={styles.gameControls}>
-            <GameControls onCall={handleCall} onFold={handleFold} onCheck={handleCheck} />
-          </View>
-        )}
+        <Text>Chips: {playerData.chips}</Text>
+        <Text>Current Bet: {playerData.currentBet}</Text>
+        <Text>Status: {playerData.status}</Text>
       </View>
-
-      <Text>Chips: {playerData.chips}</Text>
-      <Text>Current Bet: {playerData.currentBet}</Text>
-      <Text>Status: {playerData.status}</Text>
-    </View>
+      <GameSlider
+        isVisible={isSliderVisible}
+        onConfirm={handleSliderConfirm}
+        onCancel={handleSliderCancel}
+        maxChips={playerData.chips}
+        bigBlind={gameBlinds.big}
+        playerAmountInFront={playerData.amountInFront}
+        opponentAmountInFront={opponentAmountInFront}
+      />
+    </>
   );
 }
 

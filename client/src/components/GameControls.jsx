@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
 import { useGameState } from '../contexts/GameStateContext.jsx';
 
-function GameControls({ onCall, onFold, onCheck }) {
+function GameControls({ onCall, onFold, onCheck, onRaise }) {
   const { gameState } = useGameState();
 
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
@@ -54,6 +54,17 @@ function GameControls({ onCall, onFold, onCheck }) {
           Check
         </Button>
       )}
+
+      <Button
+        mode="elevated"
+        dark
+        useForeground
+        onPress={onRaise}
+        style={styles.raiseButton}
+        labelStyle={styles.buttonLabel}
+      >
+        Raise
+      </Button>
     </>
   );
 }
@@ -77,6 +88,14 @@ const styles = StyleSheet.create({
   },
   checkButton: {
     backgroundColor: '#2196F3',
+    width: '100%',
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: '5%',
+    transform: [{ scale: 1 }],
+  },
+  raiseButton: {
+    backgroundColor: '#FFC107',
     width: '100%',
     paddingVertical: 10,
     borderRadius: 10,

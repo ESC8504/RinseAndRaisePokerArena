@@ -3,7 +3,8 @@ import { StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
 import { useGameState } from '../contexts/GameStateContext.jsx';
 
-function GameControls({ onCall, onFold, onCheck, onRaise, onBet }) {
+
+function GameControls({ onCall, onFold, onCheck, onRaise, onBet, onNextHand }) {
   const { gameState } = useGameState();
 
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
@@ -22,7 +23,18 @@ function GameControls({ onCall, onFold, onCheck, onRaise, onBet }) {
   );
   // If it can't show call and raise it means the player can bet
   const canShowBet = !canShowCallAndRaise && !isBigBlindPreFlop;
-  return (
+  return gameState.round === 'showdown' ? (
+    <Button
+      mode="elevated"
+      dark
+      useForeground
+      onPress={onNextHand}
+      style={styles.nextHandButton}
+      labelStyle={styles.buttonLabel}
+    >
+      Next Hand
+    </Button>
+  ) : (
     <>
       {canShowCallAndRaise && !isBigBlindPreFlop && (
         <Button
@@ -36,7 +48,6 @@ function GameControls({ onCall, onFold, onCheck, onRaise, onBet }) {
           Call
         </Button>
       )}
-
       <Button
         mode="elevated"
         dark
@@ -47,7 +58,6 @@ function GameControls({ onCall, onFold, onCheck, onRaise, onBet }) {
       >
         Fold
       </Button>
-
       {canShowCheck && (
         <Button
           mode="elevated"
@@ -60,7 +70,6 @@ function GameControls({ onCall, onFold, onCheck, onRaise, onBet }) {
           Check
         </Button>
       )}
-
       {canShowBet && (
         <Button
           mode="elevated"
@@ -129,6 +138,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: '5%',
     transform: [{ scale: 1 }],
+  },
+  nextHandButton: {
+    backgroundColor: '#00BCD4',
+    width: '100%',
+    height: '45%',
+    borderRadius: '70%',
+    marginTop: '5%',
+    transform: [{ scale: 1.1 }],
+    justifyContent: 'center',
   },
   buttonLabel: {
     fontSize: 12,

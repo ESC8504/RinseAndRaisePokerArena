@@ -10,6 +10,7 @@ import {
   FOLD,
   CAL_WINNER,
   PROCEED_TO_NEXT_ROUND,
+  RESET_TO_PREFLOP,
   RESHUFFLE,
   RESTART_GAME,
 } from './GameActions.jsx';
@@ -51,6 +52,8 @@ export const initialState = {
       amountInFront: 0,
       status: 'active',
       cards: [],
+      handResult: null,
+      bestHand: null,
     },
     {
       name: 'Player 2',
@@ -59,6 +62,8 @@ export const initialState = {
       amountInFront: 0,
       status: 'active',
       cards: [],
+      handResult: null,
+      bestHand: null,
     },
   ],
   currentPlayerIndex: 0,
@@ -373,16 +378,25 @@ export const gameReducer = (state, action) => {
       };
     }
     case 'CAL_WINNER': {
-      const { winners } = action.payload;
-
+      const { winners, players: resultPlayers } = action.payload;
       let updatedPlayers = [...state.players];
 
+      for (let resultPlayer of resultPlayers) {
+        const playerIndex = state.players.findIndex((player) => player.cards.join(',') === resultPlayer.cards);
+        updatedPlayers[playerIndex] = {
+          ...updatedPlayers[playerIndex],
+          handResult: resultPlayer.result,
+          bestHand: resultPlayer.hand,
+        };
+      }
+      // If there is only one winner means no tie/chop pots
       if (winners.length === 1) {
-        const winnerIndex = state.players.findIndex(player => player.cards.join(',') === winners[0].cards);
+        const winnerIndex = state.players.findIndex((player) => player.cards.join(',') === winners[0].cards);
         updatedPlayers[winnerIndex].chips += state.pot;
+        // Chop pots
       } else if (winners.length > 1) {
         const potSplit = state.pot / winners.length;
-        winners.forEach(winner => {
+        winners.forEach((winner) => {
           const winnerIndex = state.players.findIndex(player => player.cards.join(',') === winner.cards);
           updatedPlayers[winnerIndex].chips += potSplit;
         });
@@ -392,12 +406,20 @@ export const gameReducer = (state, action) => {
         ...state,
         players: updatedPlayers,
         pot: 0,
+      };
+      return newStateAfterWinner;
+    }
+
+    case 'RESET_TO_PREFLOP': {
+      const newState = {
+        ...state,
         round: 'pre-flop',
       };
-      const stateAfterShuffle = gameReducer(newStateAfterWinner, { type: RESHUFFLE });
+      const stateAfterShuffle = gameReducer(newState, { type: RESHUFFLE });
       const stateAfterRotate = gameReducer(stateAfterShuffle, { type: ROTATE_BLINDS });
       return gameReducer(stateAfterRotate, { type: 'DEAL_CARDS' });
     }
+
     case RESHUFFLE: {
       return {
         ...state,

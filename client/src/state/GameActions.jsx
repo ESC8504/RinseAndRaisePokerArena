@@ -11,3 +11,4 @@ export const RESHUFFLE = 'RESHUFFLE';
 export const ROTATE_BLINDS = 'ROTATE_BLINDS';
 export const CHECK = 'CHECK';
 export const CAL_WINNER = 'CAL_WINNER';
+export const RESET_TO_PREFLOP = 'RESET_TO_PREFLOP';

@@ -98,10 +98,25 @@ function Player({ playerData, gameBlinds, position }) {
     setSliderVisible(false);
   };
 
+  const handleNextHand = () => {
+    dispatch({ type: 'RESET_TO_PREFLOP' });
+  };
+
   const playerStyle = position === 'top' ? styles.topPlayer : styles.bottomPlayer;
 
   const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
   const opponentAmountInFront = gameState.players[opponentIndex].amountInFront;
+
+  // Get the result for the current player from the gameState
+  let playerResultHand = '';
+  let playerBestHand = '';
+  if (gameState.round === 'showdown' && gameState.players) {
+    const playerResult = gameState.players.find((p) => p.cards.join(',') === playerData.cards.join(','));
+    if (playerResult) {
+      playerResultHand = playerResult.handResult || '';
+      playerBestHand = playerResult.bestHand || '';
+    }
+  }
 
   return (
     <>
@@ -127,6 +142,7 @@ function Player({ playerData, gameBlinds, position }) {
                 onCheck={handleCheck}
                 onRaise={handleRaise}
                 onBet={handleBet}
+                onNextHand={handleNextHand}
               />
             </View>
           )}
@@ -135,6 +151,13 @@ function Player({ playerData, gameBlinds, position }) {
         <Text>Chips: {playerData.chips}</Text>
         <Text>Current Bet: {playerData.currentBet}</Text>
         <Text>Status: {playerData.status}</Text>
+        { gameState.round === 'showdown' && (
+          <>
+            <Text>Result Hand: {playerResultHand}</Text>
+            <Text>Best Five Cards : {playerBestHand}</Text>
+          </>
+        )}
+
       </View>
       <GameSlider
         isVisible={isSliderVisible}

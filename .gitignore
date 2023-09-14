@@ -36,3 +36,6 @@ yarn-error.*
 
 # eslint
 .eslintrc.js
+
+config.js
+.env

@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react';
+import axios from 'axios';
+import axiosApi from '../../../config.js';
 import { View, StyleSheet } from 'react-native';
 import Player from '../components/Player.jsx';
 import Table from '../components/Table.jsx';
@@ -15,6 +17,28 @@ function GameScreen() {
       dispatch({ type: 'RESTART_GAME' });
     };
   }, [dispatch]);
+
+  useEffect(() => {
+    async function determineWinner() {
+      if (gameState.round === 'showdown') {
+        const communityCards = gameState.communityCards.join(',');
+        const playerCardStrings = gameState.players.map((player) => player.cards.join(',')).join('&pc[]=');
+
+        try {
+          const { data: result } = await axiosApi.get('/determineWinner', {
+            params: {
+              communityCards,
+              playerCards: playerCardStrings,
+            },
+          });
+          dispatch({ type: 'CAL_WINNER', payload: result });
+        } catch (error) {
+          console.error("Error getting the winner data: ", error, error.message, error.config);
+        }
+      }
+    }
+    determineWinner();
+  }, [gameState.round, gameState.communityCards, gameState.players, dispatch]);
 
   return (
     <View style={styles.game}>

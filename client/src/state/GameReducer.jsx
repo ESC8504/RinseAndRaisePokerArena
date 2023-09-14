@@ -8,7 +8,7 @@ import {
   CHECK,
   RAISE,
   FOLD,
-  WIN_ROUND,
+  CAL_WINNER,
   PROCEED_TO_NEXT_ROUND,
   RESHUFFLE,
   RESTART_GAME,
@@ -86,12 +86,17 @@ export const gameReducer = (state, action) => {
         player.cards = dealtCards;
         updatedDeck = remainingDeck;
       }
+      let nextPlayerIndex = state.blinds.bigBlindPlayerIndex + 1;
+      if (nextPlayerIndex >= state.players.length) {
+        nextPlayerIndex = 0;
+      }
 
       return {
         ...state,
         players: updatedPlayers,
         deck: updatedDeck,
         communityCards: [],
+        currentPlayerIndex: nextPlayerIndex,
       };
     }
     case POST_BLINDS: {
@@ -367,7 +372,32 @@ export const gameReducer = (state, action) => {
         currentPlayerIndex: newCurrentPlayerIndex,
       };
     }
+    case 'CAL_WINNER': {
+      const { winners } = action.payload;
 
+      let updatedPlayers = [...state.players];
+
+      if (winners.length === 1) {
+        const winnerIndex = state.players.findIndex(player => player.cards.join(',') === winners[0].cards);
+        updatedPlayers[winnerIndex].chips += state.pot;
+      } else if (winners.length > 1) {
+        const potSplit = state.pot / winners.length;
+        winners.forEach(winner => {
+          const winnerIndex = state.players.findIndex(player => player.cards.join(',') === winner.cards);
+          updatedPlayers[winnerIndex].chips += potSplit;
+        });
+      }
+
+      const newStateAfterWinner = {
+        ...state,
+        players: updatedPlayers,
+        pot: 0,
+        round: 'pre-flop',
+      };
+      const stateAfterShuffle = gameReducer(newStateAfterWinner, { type: RESHUFFLE });
+      const stateAfterRotate = gameReducer(stateAfterShuffle, { type: ROTATE_BLINDS });
+      return gameReducer(stateAfterRotate, { type: 'DEAL_CARDS' });
+    }
     case RESHUFFLE: {
       return {
         ...state,
@@ -384,4 +414,3 @@ export const gameReducer = (state, action) => {
       return state;
   }
 };
-

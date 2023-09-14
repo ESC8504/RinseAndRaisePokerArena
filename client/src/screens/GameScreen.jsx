@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import axiosApi from '../../../config.js';
 import { View, StyleSheet } from 'react-native';
@@ -17,10 +17,12 @@ function GameScreen() {
       dispatch({ type: 'RESTART_GAME' });
     };
   }, [dispatch]);
-
+  // To keep track if the showdown round has already triggered the API call
+  const [hasShowdownHappend, setHasShowdownHappend] = useState(false);
   useEffect(() => {
     async function determineWinner() {
-      if (gameState.round === 'showdown') {
+      if (gameState.round === 'showdown' && !hasShowdownHappend) {
+        setHasShowdownHappend(true);
         const communityCards = gameState.communityCards.join(',');
         const playerCardStrings = gameState.players.map((player) => player.cards.join(',')).join('&pc[]=');
 
@@ -39,7 +41,12 @@ function GameScreen() {
     }
     determineWinner();
   }, [gameState.round, gameState.communityCards, gameState.players, dispatch]);
-
+  // reset  showdown trigger state to false to avoid repeat call
+  useEffect(() => {
+    if (gameState.round !== 'showdown') {
+      setHasShowdownHappend(false);
+    }
+  }, [gameState.round]);
   return (
     <View style={styles.game}>
       <Player

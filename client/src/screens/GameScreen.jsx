@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { ImageBackground } from 'react-native';
 import axios from 'axios';
 import axiosApi from '../../../config.js';
 import { View, StyleSheet } from 'react-native';
@@ -48,7 +49,7 @@ function GameScreen() {
     }
   }, [gameState.round]);
   return (
-    <View style={styles.game}>
+    <ImageBackground source={require('../../../assets/front_screen.jpg')} style={styles.game}>
       <Player
         playerData={gameState.players[0]}
         gameBlinds={gameState.blinds}
@@ -62,7 +63,7 @@ function GameScreen() {
         isCurrentPlayer={gameState.currentPlayerIndex === 1}
         position="bottom"
       />
-    </View>
+    </ImageBackground>
   );
 }
 

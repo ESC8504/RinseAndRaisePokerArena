@@ -148,13 +148,13 @@ function Player({ playerData, gameBlinds, position }) {
           )}
         </View>
 
-        <Text>Chips: {playerData.chips}</Text>
-        <Text>Current Bet: {playerData.currentBet}</Text>
-        <Text>Status: {playerData.status}</Text>
+        <Text style={styles.whiteText}>Chips: {playerData.chips}</Text>
+        <Text style={styles.whiteText}>Current Bet: {playerData.currentBet}</Text>
+        <Text style={styles.whiteText}>Status: {playerData.status}</Text>
         { gameState.round === 'showdown' && (
           <>
-            <Text>Result Hand: {playerResultHand}</Text>
-            <Text>Best Five Cards : {playerBestHand}</Text>
+            <Text style={styles.whiteText}>Result Hand: {playerResultHand}</Text>
+            <Text style={styles.whiteText}>Best Five Cards : {playerBestHand}</Text>
           </>
         )}
 
@@ -211,6 +211,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  whiteText: {
+    color: 'white',
   },
 });
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Alert, NativeModules, StyleSheet } from 'react-native';
+import { View, Alert, NativeModules, StyleSheet, ImageBackground } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
@@ -19,24 +19,23 @@ function PlayerVsPlayerScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.gameText}>Select Multiplayer Mode</Text>
+    <ImageBackground source={require('../../../assets/front_screen.jpg')} style={styles.container}>
       <View style={styles.buttonContainer}>
         <Button mode="contained" onPress={handleGameCenter}>
           GameCenter Multiplayer
         </Button>
       </View>
       <View style={styles.buttonContainer}>
-        <Button mode="outlined" onPress={handleBluetooth}>
+        <Button mode="contained" onPress={handleBluetooth}>
           Bluetooth Local Multiplayer
         </Button>
       </View>
       <View style={styles.buttonContainer}>
-        <Button mode="text" onPress={handleSharePhone}>
+        <Button mode="contained" onPress={handleSharePhone}>
           Sharing this iPhone
         </Button>
       </View>
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -45,7 +44,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   gameText: {
     fontSize: 24,

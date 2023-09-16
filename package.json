@@ -26,7 +26,8 @@
     "react-native-linear-gradient": "^2.8.3",
     "react-native-paper": "^5.10.4",
     "react-native-reanimated": "~3.3.0",
-    "react-native-screens": "~3.22.0"
+    "react-native-screens": "~3.22.0",
+    "expo-asset": "~8.10.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

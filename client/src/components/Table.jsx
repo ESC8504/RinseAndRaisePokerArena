@@ -10,7 +10,7 @@ function Table({ communityCards, pot }) {
           <Image key={i} source={cards[card]} style={styles.card} />
         ))}
       </View>
-      <Text>Pot: {pot}</Text>
+      <Text style={styles.whiteText}>Pot: {pot}</Text>
     </View>
   );
 }
@@ -24,12 +24,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   card: {
-    width: 50,
-    height: 70,
+    width: 55,
+    height: 80,
     margin: 2,
   },
   cardsContainer: {
     flexDirection: 'row',
+  },
+  whiteText: {
+    color: 'white',
   },
 });
 

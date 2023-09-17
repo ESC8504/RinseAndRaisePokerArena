@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder, Image, Modal, Button } from 'react-native';
 import cards from '../../../assets/cards/index.js';
+import dealerButton from '../../../assets/dealer_button.png';
 import Card from './Card.jsx';
 import GameSlider from './GameSlider.jsx'
 import GameControls from './GameControls.jsx';
@@ -102,6 +103,12 @@ function Player({ playerData, gameBlinds, position }) {
     dispatch({ type: 'RESET_TO_PREFLOP' });
   };
 
+  const handleRestartGame = () => {
+    dispatch({ type: 'RESTART_GAME' });
+    dispatch({ type: 'DEAL_CARDS' });
+    dispatch({ type: 'POST_BLINDS' });
+  };
+
   const playerStyle = position === 'top' ? styles.topPlayer : styles.bottomPlayer;
 
   const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
@@ -118,6 +125,9 @@ function Player({ playerData, gameBlinds, position }) {
     }
   }
 
+  const playerIndex = position === 'top' ? 0 : 1;
+
+  const isSmallBlindPlayer = gameState.blinds.smallBlindPlayerIndex === playerIndex;
   return (
     <>
       <View style={[styles.player, playerStyle]} {...panResponder.panHandlers}>
@@ -134,6 +144,10 @@ function Player({ playerData, gameBlinds, position }) {
             ))}
           </View>
 
+          {isSmallBlindPlayer && (
+          <Image source={dealerButton} style={styles.dealerButton} />
+        )}
+
           {isCurrentPlayer && (
             <View style={styles.gameControls}>
               <GameControls
@@ -143,6 +157,7 @@ function Player({ playerData, gameBlinds, position }) {
                 onRaise={handleRaise}
                 onBet={handleBet}
                 onNextHand={handleNextHand}
+                onRestartGame={handleRestartGame}
               />
             </View>
           )}
@@ -184,16 +199,12 @@ function Player({ playerData, gameBlinds, position }) {
 const styles = StyleSheet.create({
   topPlayer: {
     padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
     width: '100%',
     alignSelf: 'center',
     transform: [{ rotate: '180deg' }],
   },
   bottomPlayer: {
     padding: 10,
-    borderColor: '#ccc',
-    borderWidth: 1,
     width: '100%',
     alignSelf: 'center',
   },
@@ -214,6 +225,10 @@ const styles = StyleSheet.create({
   },
   whiteText: {
     color: 'white',
+  },
+  dealerButton: {
+    width: 40,
+    height: 40,
   },
 });
 

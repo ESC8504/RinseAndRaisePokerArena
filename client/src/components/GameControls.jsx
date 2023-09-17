@@ -4,7 +4,7 @@ import { Button } from 'react-native-paper';
 import { useGameState } from '../contexts/GameStateContext.jsx';
 
 
-function GameControls({ onCall, onFold, onCheck, onRaise, onBet, onNextHand }) {
+function GameControls({ onCall, onFold, onCheck, onRaise, onBet, onNextHand, onRestartGame }) {
   const { gameState } = useGameState();
 
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
@@ -23,18 +23,40 @@ function GameControls({ onCall, onFold, onCheck, onRaise, onBet, onNextHand }) {
   );
   // If it can't show call and raise it means the player can bet
   const canShowBet = !canShowCallAndRaise && !isBigBlindPreFlop;
-  return gameState.round === 'showdown' ? (
-    <Button
-      mode="elevated"
-      dark
-      useForeground
-      onPress={onNextHand}
-      style={styles.nextHandButton}
-      labelStyle={styles.buttonLabel}
-    >
-      Next Hand
-    </Button>
-  ) : (
+
+  const isPlayerOutOfChips = gameState.players.some((player) => player.chips <= 0);
+  // The is a bug right now, might introduce a new round or something else
+  // if they chop at showdown and get money back it's going to be a problem
+  if (gameState.round === 'showdown' && isPlayerOutOfChips) {
+    return (
+      <Button
+        mode="elevated"
+        dark
+        useForeground
+        onPress={onRestartGame}
+        style={styles.restartGameButton}
+        labelStyle={styles.buttonLabel}
+      >
+        Restart Game
+      </Button>
+    );
+  }
+
+  if (gameState.round === 'showdown') {
+    return (
+      <Button
+        mode="elevated"
+        dark
+        useForeground
+        onPress={onNextHand}
+        style={styles.nextHandButton}
+        labelStyle={styles.buttonLabel}
+      >
+        Next Hand
+      </Button>
+    );
+  }
+  return (
     <>
       {canShowCallAndRaise && !isBigBlindPreFlop && (
         <Button
@@ -141,6 +163,15 @@ const styles = StyleSheet.create({
   },
   nextHandButton: {
     backgroundColor: '#00BCD4',
+    width: '100%',
+    height: '45%',
+    borderRadius: '70%',
+    marginTop: '5%',
+    transform: [{ scale: 1.1 }],
+    justifyContent: 'center',
+  },
+  restartGameButton: {
+    backgroundColor: '#3F51B5',
     width: '100%',
     height: '45%',
     borderRadius: '70%',

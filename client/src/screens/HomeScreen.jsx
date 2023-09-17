@@ -40,11 +40,11 @@ function HomeScreen() {
       </View>
 
       <View style={styles.bottomButtonsContainer}>
+        <Button mode="contained" onPress={() => navigation.navigate('About')}>
+          About
+        </Button>
         <Button mode="contained" onPress={() => navigation.navigate('Rules')}>
           Rules
-        </Button>
-        <Button mode="contained" onPress={() => navigation.navigate('Help')}>
-          Help
         </Button>
         <Button mode="contained" onPress={() => navigation.navigate('Settings')}>
           Settings

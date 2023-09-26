@@ -1,51 +1,66 @@
-# Setup:
+# Rinse & Raise Poker Arena
 
-1. git checkout main
+Table of Contents
+- [Description](#description)
+- [Author](#author)
+- [Built With](#built-with)
+- [Getting Started](#getting-started)
+- [Project Overview & Demos](#project-overview--demos)
 
-   git pull origin
+ ## Description
+<img src="./assets/screenShots/my_app_icon.png" alt="Game Screenshot" width="200"/>
+A mobile app designed for Texas Hold'em players seeking heads-up challenges.
 
-   (make regular updates to keep local copy up to date).
-  (After that you can also merge the changes from your local main branch into the feature branch:
-  git checkout feature/xxx to make sure or switch to the feature branch
-  git merge main  this will merge the changes from the local main branch into the currently checked-out feature branch.)
+It is inspired by the love story of Eric (Author) and Sophy who found a fun way to decide on daily chores using a poker game. 
+This game is not only a tribute to the creative solution but also a handy tool for others finding themselves in similar situations.
 
-3. git checkout -b feature/XXX
-to create a "feature" branch to keep it away from the main branch, which keeps the work isolated and organized.
+## Author
 
-4. Coding, update, commit
+- [**Eric Chang**](https://github.com/ESC8504)
 
-5. git push -u origin feature/XXX
+## Built With
+![](https://img.shields.io/badge/-JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black) 
+![](https://img.shields.io/badge/-TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) 
+![](https://img.shields.io/badge/-React-61DAFB?style=flat-square&logo=react&logoColor=black) 
+![](https://img.shields.io/badge/-React_Native-61DAFB?style=flat-square&logo=react&logoColor=black) 
+![](https://img.shields.io/badge/-Node.js-339933?style=flat-square&logo=node.js&logoColor=white) 
+![](https://img.shields.io/badge/-Express-black?style=flat-square&logo=express&logoColor=white) 
+![](https://img.shields.io/badge/-Git-F05032?style=flat-square&logo=git&logoColor=white) 
+![](https://img.shields.io/badge/-ESLint-4B32C3?style=flat-square&logo=eslint&logoColor=white) 
+![](https://img.shields.io/badge/-React_Native_Paper-2563EB?style=flat-square&logo=react&logoColor=white) 
+![](https://img.shields.io/badge/-Redux-764ABC?style=flat-square&logo=redux&logoColor=white)
 
-This pushes new-feature to the central repo, and the -u flag adds it as a remote tracking branch. After setting up the tracking branch, git push can be invoked without any parameters to automatically push the new-feature branch to the central repository.
+## Getting Started
 
-# Request a new branch and pull request :
-1. git checkout -b eric-feature main
+1. **Clone the repo**
 
-This checks out a branch called eric-feature based on main, and the -b flag tells Git to create the branch if it doesn’t already exist.
+   `git clone https://github.com/ESC8504/RinseAndRaisePokerArena.git`
 
-2. coding, commit, update
+3. **Navigate to project directory**
+   
+   `cd your-project-name`
 
-3. git push -u origin eric-feature
+5. **Install necessary dependencies**
+   
+   `npm install`
 
-This pushes eric-feature to the central repository (origin), and the -u flag adds it as a remote tracking branch.
+6. **Update any example.config.js and example.env**
 
-4. Create a Pull Request
+7. **Run the application**
 
-5. git checkout main
+   `npm run ios`
 
-   git pull
 
-   git pull origin eric-feature
+## Project Overview & Demos
 
-   git push
+- Play Poker Hold'em Heads Up with a friend.
+- Share a phone functionality for offline gameplay.
+- User-friendly interface with smooth gameplay.
+- Decide on daily chores in a fun way.
+<p float="left">
+  <img src="./assets/screenShots/homeScreen.png" alt="Game Screenshot1" width="300" />
+  <img src="./assets/screenShots/aboutScreen.png" alt="Game Screenshot2" width="300" /> 
+  <img src="./assets/screenShots/gameScreen.png" alt="Game Screenshot3" width="300" />
+</p>
 
-If the team member wanted, they could pull eric-feature into their local repository and work on it on his own. Any commits he added would also show up in the pull request.
-This process will results in a merge commit. Once the team member is ready to accept the pull request, they needs to merge the feature into the stable project (this can be done by any one on the team)
 
-   They can also do:
-
-   git fetch origin
-
-   git checkout eric-feature
-
-6. ***Review and Merge: Before every merge, at least one group member other than the one who made the pull request should review the pull request, possibly requesting changes. Once approved, the changes can be merged into the main branch of the organization repository.

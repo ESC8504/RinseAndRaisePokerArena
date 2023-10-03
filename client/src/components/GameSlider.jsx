@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, Button, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
-import { useGameState } from '../contexts/GameStateContext.jsx';
+import { useDispatch, useSelector } from 'react-redux';
 
 function GameSlider({ isVisible, onConfirm, onCancel, maxChips, bigBlind, playerAmountInFront,
-  opponentAmountInFront }) {
-  const { gameState, isPreFlop, isCurrentPlayerSmallBlind } = useGameState();
+  opponentAmountInFront}) {
+  const dispatch = useDispatch();
+  const gameState = useSelector(state => state.game);
+  const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
+  const opponentData = gameState.players[opponentIndex];
+  const isCurrentPlayerSmallBlind = () => gameState.currentPlayerIndex === gameState.blinds.smallBlindPlayerIndex;
+  const isPreFlop = () => gameState.round === 'pre-flop';
 
-  const isSmallBlindPreFlop = isPreFlop && isCurrentPlayerSmallBlind;
+  const isSmallBlindPreFlop = isPreFlop() && isCurrentPlayerSmallBlind();
   // Calculation for minimum raise value
   let minValue;
+  const effectiveStackSize = Math.min(maxChips, opponentAmountInFront + opponentData.chips);
   if (isSmallBlindPreFlop) {
     // only for small blind preflop player
     minValue = bigBlind + playerAmountInFront;
   } else {
     // min raise increment
-    minValue = (opponentAmountInFront - playerAmountInFront) * 2;
+    minValue = opponentAmountInFront + (opponentAmountInFront - playerAmountInFront);
   }
   // Ensure min Raise Value is at least equal to bigBlind
   minValue = Math.max(minValue, bigBlind);
@@ -38,7 +44,7 @@ function GameSlider({ isVisible, onConfirm, onCancel, maxChips, bigBlind, player
         <View style={styles.modalContent}>
           <Text style={styles.title}>Choose Raise Amount</Text>
           <Slider
-            maximumValue={maxChips}
+            maximumValue={effectiveStackSize}
             minimumValue={minValue}
             step={bigBlind}
             value={sliderValue}

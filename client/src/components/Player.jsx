@@ -5,10 +5,27 @@ import dealerButton from '../../../assets/dealer_button.png';
 import Card from './Card.jsx';
 import GameSlider from './GameSlider.jsx'
 import GameControls from './GameControls.jsx';
-import { useGameState } from '../contexts/GameStateContext.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  call,
+  fold,
+  rotateBlinds,
+  reshuffle,
+  dealCards,
+  check,
+  raise,
+  resetToPreflop,
+  postBlinds,
+  restartGame,
+} from '../state/gameSlice.js';
 
 function Player({ playerData, gameBlinds, position }) {
-  const { gameState, dispatch, currentPlayerData, opponentData } = useGameState();
+  const dispatch = useDispatch();
+  const gameState = useSelector(state => state.game);
+  const currentPlayerData = gameState.players[gameState.currentPlayerIndex];
+  const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
+  const opponentData = gameState.players[opponentIndex];
+
   const isCurrentPlayer = gameState.currentPlayerIndex === (position === 'top' ? 0 : 1);
   const [isSliderVisible, setSliderVisible] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
@@ -63,18 +80,18 @@ function Player({ playerData, gameBlinds, position }) {
   });
 
   const handleCall = () => {
-    dispatch({ type: 'CALL' });
+    dispatch(call());
   };
 
   const handleFold = () => {
-    dispatch({ type: 'FOLD' });
-    dispatch({ type: 'ROTATE_BLINDS' });
-    dispatch({ type: 'RESHUFFLE' });
-    dispatch({ type: 'DEAL_CARDS' });
+    dispatch(fold());
+    dispatch(rotateBlinds());
+    dispatch(reshuffle());
+    dispatch(dealCards());
   };
 
   const handleCheck = () => {
-    dispatch({ type: 'CHECK' });
+    dispatch(check());
   };
 
   const handleRaise = () => {
@@ -82,7 +99,7 @@ function Player({ playerData, gameBlinds, position }) {
   }
 
   const handleRaiseSliderConfirm = (value) => {
-    dispatch({ type: 'RAISE', payload: value });
+    dispatch(raise(value));
     setSliderVisible(false);
   };
 
@@ -95,23 +112,23 @@ function Player({ playerData, gameBlinds, position }) {
   };
 
   const handleBetSliderConfirm = (value) => {
-    dispatch({ type: 'RAISE', payload: value });
+    dispatch(raise(value));
     setSliderVisible(false);
   };
 
   const handleNextHand = () => {
-    dispatch({ type: 'RESET_TO_PREFLOP' });
+    dispatch(resetToPreflop());
   };
 
   const handleRestartGame = () => {
-    dispatch({ type: 'RESTART_GAME' });
-    dispatch({ type: 'DEAL_CARDS' });
-    dispatch({ type: 'POST_BLINDS' });
+    dispatch(restartGame());
+    dispatch(dealCards());
+    dispatch(postBlinds());
   };
 
   const playerStyle = position === 'top' ? styles.topPlayer : styles.bottomPlayer;
 
-  const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
+  // const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
   const opponentAmountInFront = gameState.players[opponentIndex].amountInFront;
 
   // Get the result for the current player from the gameState

@@ -1,19 +1,5 @@
+import { createSlice } from '@reduxjs/toolkit';
 import { Alert } from 'react-native';
-import {
-  DEAL_CARDS,
-  POST_BLINDS,
-  BET,
-  ROTATE_BLINDS,
-  CALL,
-  CHECK,
-  RAISE,
-  FOLD,
-  CAL_WINNER,
-  PROCEED_TO_NEXT_ROUND,
-  RESET_TO_PREFLOP,
-  RESHUFFLE,
-  RESTART_GAME,
-} from './GameActions.jsx';
 
 const CARD_VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 const CARD_SUITS = ['S', 'H', 'D', 'C'];
@@ -43,7 +29,7 @@ const dealCardsFromDeck = (deck, numberOfCards) => {
   return { dealtCards, remainingDeck };
 };
 
-export const initialState = {
+const initialState = {
   players: [
     {
       name: 'Player 1',
@@ -80,9 +66,11 @@ export const initialState = {
   deck: initializeDeck(),
 };
 
-export const gameReducer = (state, action) => {
-  switch (action.type) {
-    case DEAL_CARDS: {
+const gameSlice = createSlice({
+  name: 'game',
+  initialState,
+  reducers: {
+    dealCards(state) {
       let updatedPlayers = [...state.players];
       let updatedDeck = [...state.deck];
 
@@ -96,15 +84,12 @@ export const gameReducer = (state, action) => {
         nextPlayerIndex = 0;
       }
 
-      return {
-        ...state,
-        players: updatedPlayers,
-        deck: updatedDeck,
-        communityCards: [],
-        currentPlayerIndex: nextPlayerIndex,
-      };
-    }
-    case POST_BLINDS: {
+      state.players = updatedPlayers;
+      state.deck = updatedDeck;
+      state.communityCards = [];
+      state.currentPlayerIndex = nextPlayerIndex;
+    },
+    postBlinds(state) {
       const smallBlindPlayer = { ...state.players[state.blinds.smallBlindPlayerIndex] };
       const bigBlindPlayer = { ...state.players[state.blinds.bigBlindPlayerIndex] };
 
@@ -114,19 +99,11 @@ export const gameReducer = (state, action) => {
       bigBlindPlayer.chips -= state.blinds.big;
       bigBlindPlayer.amountInFront += state.blinds.big;
 
-      const updatedPlayers = state.players.map((player) => {
-        if (player.name === smallBlindPlayer.name) return smallBlindPlayer;
-        if (player.name === bigBlindPlayer.name) return bigBlindPlayer;
-        return player;
-      });
-
-      return {
-        ...state,
-        pot: state.pot + state.blinds.small + state.blinds.big,
-        players: updatedPlayers,
-      };
-    }
-    case BET: {
+      state.players[state.blinds.smallBlindPlayerIndex] = smallBlindPlayer;
+      state.players[state.blinds.bigBlindPlayerIndex] = bigBlindPlayer;
+      state.pot += state.blinds.small + state.blinds.big;
+    },
+    bet(state, action) {
       const currentPlayer = { ...state.players[state.currentPlayerIndex] };
       const betAmount = action.payload;
 
@@ -134,55 +111,27 @@ export const gameReducer = (state, action) => {
       currentPlayer.amountInFront += betAmount;
       currentPlayer.currentBet = betAmount;
 
-      let updatedPlayers = [...state.players];
-
-      for (let i = 0; i < updatedPlayers.length; i += 1) {
-        if (i === state.currentPlayerIndex) {
-          updatedPlayers[i] = currentPlayer;
-        }
-      }
-
-      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
-      return {
-        ...state,
-        players: updatedPlayers,
-        pot: state.pot + betAmount,
-        lastActedPlayerIndex: state.currentPlayerIndex,
-        currentPlayerIndex: newCurrentPlayerIndex,
-      };
-    }
-
-    case FOLD: {
+      state.players[state.currentPlayerIndex] = currentPlayer;
+      state.pot += betAmount;
+      state.lastActedPlayerIndex = state.currentPlayerIndex;
+      state.currentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+    },
+    fold(state) {
       const currentPlayer = { ...state.players[state.currentPlayerIndex] };
       currentPlayer.status = 'folded';
 
       let remainingPlayerIndex = state.currentPlayerIndex + 1;
-      // Check if the player is already the last player
       if (remainingPlayerIndex >= state.players.length) {
         remainingPlayerIndex = 0;
       }
       const remainingPlayer = { ...state.players[remainingPlayerIndex] };
       remainingPlayer.chips += state.pot;
 
-      let updatedPlayers = [...state.players];
-
-      for (let i = 0; i < updatedPlayers.length; i += 1) {
-        if (i === state.currentPlayerIndex) {
-          updatedPlayers[i] = currentPlayer;
-        } else if (i === remainingPlayerIndex) {
-          updatedPlayers[i] = remainingPlayer;
-        }
-      }
-
-      return {
-        ...state,
-        players: updatedPlayers,
-        pot: 0,
-      };
-    }
-
-    case ROTATE_BLINDS: {
-      // Rotate the blinds and check the position
+      state.players[state.currentPlayerIndex] = currentPlayer;
+      state.players[remainingPlayerIndex] = remainingPlayer;
+      state.pot = 0;
+    },
+    rotateBlinds(state) {
       let newSmallBlindIndex = state.blinds.smallBlindPlayerIndex + 1;
       if (newSmallBlindIndex >= state.players.length) {
         newSmallBlindIndex = 0;
@@ -191,44 +140,32 @@ export const gameReducer = (state, action) => {
       if (newBigBlindIndex >= state.players.length) {
         newBigBlindIndex = 0;
       }
-
-      const updatedPlayers = [...state.players];
-
       //  Set the amount in front for blinds after -(minus) blinds
-      updatedPlayers[newSmallBlindIndex].chips -= state.blinds.small;
-      updatedPlayers[newSmallBlindIndex].amountInFront = state.blinds.small;
+      state.players[newSmallBlindIndex].chips -= state.blinds.small;
+      state.players[newSmallBlindIndex].amountInFront = state.blinds.small;
 
-      updatedPlayers[newBigBlindIndex].chips -= state.blinds.big;
-      updatedPlayers[newBigBlindIndex].amountInFront = state.blinds.big;
+      state.players[newBigBlindIndex].chips -= state.blinds.big;
+      state.players[newBigBlindIndex].amountInFront = state.blinds.big;
 
       // Reset the amountInFront for players
-      for (let i = 0; i < updatedPlayers.length; i++) {
+      for (let i = 0; i < state.players.length; i++) {
         if (i !== newSmallBlindIndex && i !== newBigBlindIndex) {
-          updatedPlayers[i].amountInFront = 0;
+          state.players[i].amountInFront = 0;
         }
       }
 
-      const newPot = state.blinds.small + state.blinds.big;
-      // Go to the next player
+      state.pot = state.blinds.small + state.blinds.big;
+
       let nextPlayerIndex = state.currentPlayerIndex + 1;
       if (nextPlayerIndex >= state.players.length) {
         nextPlayerIndex = 0;
       }
 
-      return {
-        ...state,
-        pot: newPot,
-        players: updatedPlayers,
-        blinds: {
-          ...state.blinds,
-          smallBlindPlayerIndex: newSmallBlindIndex,
-          bigBlindPlayerIndex: newBigBlindIndex,
-        },
-        currentPlayerIndex: nextPlayerIndex,
-      };
-    }
-
-    case PROCEED_TO_NEXT_ROUND: {
+      state.blinds.smallBlindPlayerIndex = newSmallBlindIndex;
+      state.blinds.bigBlindPlayerIndex = newBigBlindIndex;
+      state.currentPlayerIndex = nextPlayerIndex;
+    },
+    proceedToNextRound(state) {
       let nextRound = '';
       let newCommunityCards = [...state.communityCards];
       let remainingDeck = [...state.deck];
@@ -264,120 +201,74 @@ export const gameReducer = (state, action) => {
         amountInFront: 0,
       }));
 
-      return {
-        ...state,
-        communityCards: newCommunityCards,
-        round: nextRound,
-        deck: remainingDeck,
-        currentPlayerIndex: nextPlayerIndex,
-        lastActedPlayerIndex: null,
-        players: updatedPlayers,
-      }
-    }
-
-
-    case CALL: {
+      state.communityCards = newCommunityCards;
+      state.round = nextRound;
+      state.deck = remainingDeck;
+      state.currentPlayerIndex = nextPlayerIndex;
+      state.lastActedPlayerIndex = null;
+      state.players = updatedPlayers;
+    },
+    call(state) {
       const currentPlayer = { ...state.players[state.currentPlayerIndex] };
       const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
       const opponentPlayer = { ...state.players[opponentIndex] };
 
-      if (currentPlayer.amountInFront === opponentPlayer.amountInFront) {
-        Alert.alert(
-          'There Is No Bet To Call!',
-          'Please choose another action'
-            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-        );
-        return state;
-      }
-
+      // if (currentPlayer.amountInFront === opponentPlayer.amountInFront) {
+      //   Alert.alert(
+      //     'There Is No Bet To Call!',
+      //     'Please choose another action',
+      //     [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+      //   );
+      //   return;
+      // }
       const amountToCall = opponentPlayer.amountInFront - currentPlayer.amountInFront;
 
       currentPlayer.chips -= amountToCall;
       currentPlayer.amountInFront += amountToCall;
 
-      const updatedPlayers = [...state.players];
+      state.players[state.currentPlayerIndex] = currentPlayer;
 
-      for (let i = 0; i < updatedPlayers.length; i += 1) {
-        if (i === state.currentPlayerIndex) {
-          updatedPlayers[i] = currentPlayer;
-        }
-      }
-
-      const newState = {
-        ...state,
-        players: updatedPlayers,
-        pot: state.pot + amountToCall,
-        lastActedPlayerIndex: state.currentPlayerIndex,
-      };
-
+      state.pot += amountToCall;
+      state.lastActedPlayerIndex = state.currentPlayerIndex;
+      state.currentPlayerIndex = opponentIndex;
       // If both players have acted, go to the next round
-      if (state.lastActedPlayerIndex !== null
-        && state.lastActedPlayerIndex !== state.currentPlayerIndex) {
-        return gameReducer(newState, { type: PROCEED_TO_NEXT_ROUND });
+      if (state.lastActedPlayerIndex === opponentIndex) {
+        gameSlice.caseReducers.proceedToNextRound(state);
       }
-
-      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
-
-      return {
-        ...newState,
-        currentPlayerIndex: newCurrentPlayerIndex,
-      };
-    }
-
-
-    case CHECK: {
-      if (state.round === 'pre-flop' && state.currentPlayerIndex !== state.blinds.bigBlindPlayerIndex) {
-        Alert.alert(
-          "You Can't Check!",
-          'Please choose another action'
-            [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-        );
-        return state;
-      }
-
-      const newState = {
-        ...state,
-        lastActedPlayerIndex: state.currentPlayerIndex,
-      };
-
+    },
+    check(state) {
+      // if (state.round === 'pre-flop' && state.currentPlayerIndex !== state.blinds.bigBlindPlayerIndex) {
+      //   Alert.alert(
+      //     "You Can't Check!",
+      //     'Please choose another action',
+      //     [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
+      //   );
+      //   return;
+      // }
+      const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+      state.currentPlayerIndex = opponentIndex;
       // If both players have acted, go to the next round
-      if (state.lastActedPlayerIndex !== null
-        && state.lastActedPlayerIndex !== state.currentPlayerIndex) {
-        return gameReducer(newState, { type: PROCEED_TO_NEXT_ROUND });
+      if (state.lastActedPlayerIndex === opponentIndex) {
+        gameSlice.caseReducers.proceedToNextRound(state);
+        state.lastActedPlayerIndex = state.currentPlayerIndex;
       }
-      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
-      return {
-        ...newState,
-        currentPlayerIndex: newCurrentPlayerIndex
-      };
-    }
-    case RAISE: {
+    },
+    raise(state, action) {
       const currentPlayer = { ...state.players[state.currentPlayerIndex] };
       const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
-      const opponentPlayer = { ...state.players[opponentIndex] };
 
       const raiseAmount = action.payload;
 
       currentPlayer.chips -= raiseAmount;
       currentPlayer.amountInFront += raiseAmount;
-      const updatedPlayers = [...state.players];
-      updatedPlayers[state.currentPlayerIndex] = currentPlayer;
+      state.players[state.currentPlayerIndex] = currentPlayer;
 
-      const newState = {
-        ...state,
-        players: updatedPlayers,
-        pot: state.pot + raiseAmount,
-        lastActedPlayerIndex: state.currentPlayerIndex,
-      };
+      state.pot += raiseAmount;
+      state.lastActedPlayerIndex = state.currentPlayerIndex;
 
-      let newCurrentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
-
-      return {
-        ...newState,
-        currentPlayerIndex: newCurrentPlayerIndex,
-      };
-    }
-    case 'CAL_WINNER': {
+      state.currentPlayerIndex = opponentIndex;
+    },
+    calWinner(state, action) {
       const { winners, players: resultPlayers } = action.payload;
       let updatedPlayers = [...state.players];
 
@@ -402,37 +293,39 @@ export const gameReducer = (state, action) => {
         });
       }
 
-      const newStateAfterWinner = {
-        ...state,
-        players: updatedPlayers,
-        pot: 0,
-      };
-      return newStateAfterWinner;
-    }
+      state.players = updatedPlayers;
+      state.pot = 0;
+    },
+    resetToPreflop(state) {
+      state.round = 'pre-flop';
+      gameSlice.caseReducers.reshuffle(state);
+      gameSlice.caseReducers.rotateBlinds(state);
+      gameSlice.caseReducers.dealCards(state);
+    },
+    reshuffle(state) {
+      state.deck = initializeDeck();
+    },
+    restartGame(state) {
+      Object.assign(state, initialState);
+      state.deck = initializeDeck();
+    },
+  },
+});
 
-    case 'RESET_TO_PREFLOP': {
-      const newState = {
-        ...state,
-        round: 'pre-flop',
-      };
-      const stateAfterShuffle = gameReducer(newState, { type: RESHUFFLE });
-      const stateAfterRotate = gameReducer(stateAfterShuffle, { type: ROTATE_BLINDS });
-      return gameReducer(stateAfterRotate, { type: 'DEAL_CARDS' });
-    }
+export const {
+  dealCards,
+  postBlinds,
+  bet,
+  fold,
+  rotateBlinds,
+  proceedToNextRound,
+  call,
+  check,
+  raise,
+  calWinner,
+  resetToPreflop,
+  reshuffle,
+  restartGame,
+} = gameSlice.actions;
 
-    case RESHUFFLE: {
-      return {
-        ...state,
-        deck: initializeDeck(),
-      };
-    }
-    case RESTART_GAME: {
-      return {
-        ...initialState,
-        deck: initializeDeck(),
-      };
-    }
-    default:
-      return state;
-  }
-};
+export default gameSlice.reducer;

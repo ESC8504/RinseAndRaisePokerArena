@@ -1,7 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { GameStateProvider } from './contexts/GameStateContext.jsx';
+// import { GameStateProvider } from './contexts/GameStateContext.jsx';
+import { Provider } from 'react-redux';
+import store from './state/store.js';
 import HomeScreen from './screens/HomeScreen.jsx';
 import GameScreen from './screens/GameScreen.jsx';
 import RulesScreen from './screens/RulesScreen.jsx';
@@ -11,7 +13,7 @@ import PlayerVsPlayerScreen from './screens/PlayerVsPlayerScreen.jsx';
 const Stack = createStackNavigator();
 function App() {
   return (
-    <GameStateProvider>
+    <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Home">
           <Stack.Screen name="Home" component={HomeScreen} />
@@ -22,7 +24,7 @@ function App() {
           <Stack.Screen name="Game" component={GameScreen} />
         </Stack.Navigator>
       </NavigationContainer>
-    </GameStateProvider>
+    </Provider>
   );
 }
 export default App;

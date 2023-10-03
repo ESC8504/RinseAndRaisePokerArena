@@ -1,11 +1,14 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Button } from 'react-native-paper';
-import { useGameState } from '../contexts/GameStateContext.jsx';
+// import { useGameState } from '../contexts/GameStateContext.jsx';
+import { useDispatch, useSelector } from 'react-redux';
 
 
 function GameControls({ onCall, onFold, onCheck, onRaise, onBet, onNextHand, onRestartGame }) {
-  const { gameState } = useGameState();
+  // const { gameState } = useGameState();
+  const dispatch = useDispatch();
+  const gameState = useSelector(state => state.game);
 
   const currentPlayer = gameState.players[gameState.currentPlayerIndex];
   const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;

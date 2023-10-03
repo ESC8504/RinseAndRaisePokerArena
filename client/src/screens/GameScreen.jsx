@@ -1,21 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { ImageBackground } from 'react-native';
+import { ImageBackground, View, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
 import axiosApi from '../../../config.js';
-import { View, StyleSheet } from 'react-native';
 import Player from '../components/Player.jsx';
 import Table from '../components/Table.jsx';
-import { useGameState } from '../contexts/GameStateContext.jsx';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  dealCards,
+  postBlinds,
+  restartGame,
+  calWinner,
+} from '../state/gameSlice.js';
 
 function GameScreen() {
-  const { gameState, dispatch } = useGameState();
-
+  const dispatch = useDispatch();
+  const gameState = useSelector(state => state.game);
   // This useEffect hook is used to dispatch the actions when the GameScreen component mounts.
   useEffect(() => {
-    dispatch({ type: 'DEAL_CARDS' });
-    dispatch({ type: 'POST_BLINDS' });
+    dispatch(dealCards());
+    dispatch(postBlinds());
     return () => {
-      dispatch({ type: 'RESTART_GAME' });
+      dispatch(restartGame());
     };
   }, [dispatch]);
   // To keep track if the showdown round has already triggered the API call
@@ -34,7 +39,7 @@ function GameScreen() {
               playerCards: playerCardStrings,
             },
           });
-          dispatch({ type: 'CAL_WINNER', payload: result });
+          dispatch(calWinner(result));
         } catch (error) {
           console.error("Error getting the winner data: ", error, error.message, error.config);
         }

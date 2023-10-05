@@ -9,12 +9,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   call,
   fold,
-  rotateBlinds,
-  reshuffle,
+  resetToPreflop,
   dealCards,
   check,
   raise,
-  resetToPreflop,
   postBlinds,
   restartGame,
 } from '../state/gameSlice.js';
@@ -85,9 +83,7 @@ function Player({ playerData, gameBlinds, position }) {
 
   const handleFold = () => {
     dispatch(fold());
-    dispatch(rotateBlinds());
-    dispatch(reshuffle());
-    dispatch(dealCards());
+    dispatch(resetToPreflop())
   };
 
   const handleCheck = () => {

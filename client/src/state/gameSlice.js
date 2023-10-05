@@ -29,6 +29,11 @@ const dealCardsFromDeck = (deck, numberOfCards) => {
   return { dealtCards, remainingDeck };
 };
 
+const handleAllIn = (state) => {
+  while (state.round !== 'showdown') {
+    gameSlice.caseReducers.proceedToNextRound(state);
+  }
+};
 const initialState = {
   players: [
     {
@@ -40,6 +45,7 @@ const initialState = {
       cards: [],
       handResult: null,
       bestHand: null,
+      isAllIn: false,
     },
     {
       name: 'Player 2',
@@ -50,9 +56,11 @@ const initialState = {
       cards: [],
       handResult: null,
       bestHand: null,
+      isAllIn: false,
     },
   ],
   currentPlayerIndex: 0,
+  actionsInRound: 0,
   lastActedPlayerIndex: null,
   communityCards: [],
   pot: 0,
@@ -71,21 +79,16 @@ const gameSlice = createSlice({
   initialState,
   reducers: {
     dealCards(state) {
-      let updatedPlayers = [...state.players];
-      let updatedDeck = [...state.deck];
-
-      for (let player of updatedPlayers) {
-        const { dealtCards, remainingDeck } = dealCardsFromDeck(updatedDeck, 2);
+      for (let player of state.players) {
+        const { dealtCards, remainingDeck } = dealCardsFromDeck(state.deck, 2);
         player.cards = dealtCards;
-        updatedDeck = remainingDeck;
+        state.deck = remainingDeck;
       }
       let nextPlayerIndex = state.blinds.bigBlindPlayerIndex + 1;
       if (nextPlayerIndex >= state.players.length) {
         nextPlayerIndex = 0;
       }
 
-      state.players = updatedPlayers;
-      state.deck = updatedDeck;
       state.communityCards = [];
       state.currentPlayerIndex = nextPlayerIndex;
     },
@@ -102,16 +105,20 @@ const gameSlice = createSlice({
       state.players[state.blinds.smallBlindPlayerIndex] = smallBlindPlayer;
       state.players[state.blinds.bigBlindPlayerIndex] = bigBlindPlayer;
       state.pot += state.blinds.small + state.blinds.big;
+      // state.currentPlayerIndex = state.blinds.smallBlindPlayerIndex;
     },
     bet(state, action) {
-      const currentPlayer = { ...state.players[state.currentPlayerIndex] };
       const betAmount = action.payload;
 
-      currentPlayer.chips -= betAmount;
-      currentPlayer.amountInFront += betAmount;
-      currentPlayer.currentBet = betAmount;
+      state.players[state.currentPlayerIndex].chips -= betAmount;
+      state.players[state.currentPlayerIndex].amountInFront += betAmount;
+      state.players[state.currentPlayerIndex].currentBet = betAmount;
 
-      state.players[state.currentPlayerIndex] = currentPlayer;
+      if (state.players[state.currentPlayerIndex].chips === 0) {
+        state.players[state.currentPlayerIndex].isAllIn = true;
+        handleAllIn(state);
+      }
+
       state.pot += betAmount;
       state.lastActedPlayerIndex = state.currentPlayerIndex;
       state.currentPlayerIndex = state.currentPlayerIndex === 0 ? 1 : 0;
@@ -207,66 +214,75 @@ const gameSlice = createSlice({
       state.currentPlayerIndex = nextPlayerIndex;
       state.lastActedPlayerIndex = null;
       state.players = updatedPlayers;
+      state.actionsInRound = 0;
     },
     call(state) {
-      const currentPlayer = { ...state.players[state.currentPlayerIndex] };
       const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
-      const opponentPlayer = { ...state.players[opponentIndex] };
+      const opponentPlayer = state.players[opponentIndex];
 
-      // if (currentPlayer.amountInFront === opponentPlayer.amountInFront) {
-      //   Alert.alert(
-      //     'There Is No Bet To Call!',
-      //     'Please choose another action',
-      //     [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-      //   );
-      //   return;
-      // }
-      const amountToCall = opponentPlayer.amountInFront - currentPlayer.amountInFront;
+      const amountToCall = opponentPlayer.amountInFront - state.players[state.currentPlayerIndex].amountInFront;
 
-      currentPlayer.chips -= amountToCall;
-      currentPlayer.amountInFront += amountToCall;
-
-      state.players[state.currentPlayerIndex] = currentPlayer;
-
+      state.players[state.currentPlayerIndex].chips -= amountToCall;
+      state.players[state.currentPlayerIndex].amountInFront += amountToCall;
       state.pot += amountToCall;
+
       state.lastActedPlayerIndex = state.currentPlayerIndex;
-      state.currentPlayerIndex = opponentIndex;
-      // If both players have acted, go to the next round
-      if (state.lastActedPlayerIndex === opponentIndex) {
+
+      if (state.players[opponentIndex].isAllIn) {
+        handleAllIn(state);
+        return;
+      }
+      state.actionsInRound += 1;
+      // If both players have acted and their bet amounts are equal, move to the next round
+      if (state.actionsInRound >= 2 && state.players[0].amountInFront === state.players[1].amountInFront) {
         gameSlice.caseReducers.proceedToNextRound(state);
+        return;
+      }
+
+      if (state.round === 'pre-flop' && state.currentPlayerIndex === state.blinds.smallBlindPlayerIndex) {
+        state.currentPlayerIndex = state.blinds.bigBlindPlayerIndex;
+      } else {
+        state.currentPlayerIndex = opponentIndex;
       }
     },
     check(state) {
-      // if (state.round === 'pre-flop' && state.currentPlayerIndex !== state.blinds.bigBlindPlayerIndex) {
-      //   Alert.alert(
-      //     "You Can't Check!",
-      //     'Please choose another action',
-      //     [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-      //   );
-      //   return;
-      // }
-      const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
-      state.currentPlayerIndex = opponentIndex;
-      // If both players have acted, go to the next round
-      if (state.lastActedPlayerIndex === opponentIndex) {
+      state.lastActedPlayerIndex = state.currentPlayerIndex;
+      state.actionsInRound += 1;
+      // If both players have acted and their bet amounts are equal, move to the next round
+      if (state.actionsInRound >= 2 && state.players[0].amountInFront === state.players[1].amountInFront) {
         gameSlice.caseReducers.proceedToNextRound(state);
-        state.lastActedPlayerIndex = state.currentPlayerIndex;
+        return;
+      }
+
+      const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
+      if (state.round === 'pre-flop' && state.currentPlayerIndex === state.blinds.smallBlindPlayerIndex) {
+        state.currentPlayerIndex = state.blinds.bigBlindPlayerIndex;
+      } else {
+        state.currentPlayerIndex = opponentIndex;
       }
     },
     raise(state, action) {
-      const currentPlayer = { ...state.players[state.currentPlayerIndex] };
+      const amount = action.payload;
       const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
 
-      const raiseAmount = action.payload;
+      state.players[state.currentPlayerIndex].chips -= amount;
+      state.players[state.currentPlayerIndex].amountInFront += amount;
+      state.pot += amount;
 
-      currentPlayer.chips -= raiseAmount;
-      currentPlayer.amountInFront += raiseAmount;
-      state.players[state.currentPlayerIndex] = currentPlayer;
+      if (state.players[state.currentPlayerIndex].chips === 0) {
+        state.players[state.currentPlayerIndex].isAllIn = true;
+        handleAllIn(state);
+      }
 
-      state.pot += raiseAmount;
       state.lastActedPlayerIndex = state.currentPlayerIndex;
 
-      state.currentPlayerIndex = opponentIndex;
+      state.actionsInRound = 1;
+
+      if (state.round === 'pre-flop' && state.currentPlayerIndex === state.blinds.smallBlindPlayerIndex) {
+        state.currentPlayerIndex = state.blinds.bigBlindPlayerIndex;
+      } else {
+        state.currentPlayerIndex = opponentIndex;
+      }
     },
     calWinner(state, action) {
       const { winners, players: resultPlayers } = action.payload;

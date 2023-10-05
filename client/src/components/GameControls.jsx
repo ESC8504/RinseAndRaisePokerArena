@@ -61,7 +61,7 @@ function GameControls({ onCall, onFold, onCheck, onRaise, onBet, onNextHand, onR
   }
   return (
     <>
-      {canShowCallAndRaise && !isBigBlindPreFlop && (
+      {canShowCallAndRaise && (
         <Button
           mode="elevated"
           dark

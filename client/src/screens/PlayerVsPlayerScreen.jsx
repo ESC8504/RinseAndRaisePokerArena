@@ -2,12 +2,13 @@ import React from 'react';
 import { View, Alert, NativeModules, StyleSheet, ImageBackground } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
+import GradientButton from '../utils/GradientButton.jsx';
 
 function PlayerVsPlayerScreen() {
   const navigation = useNavigation();
 
   const handleGameCenter = () => {
-    //developing
+    // developing
   };
 
   const handleBluetooth = () => {
@@ -21,19 +22,25 @@ function PlayerVsPlayerScreen() {
   return (
     <ImageBackground source={require('../../../assets/front_screen.jpg')} style={styles.container}>
       <View style={styles.buttonContainer}>
-        <Button mode="contained" onPress={handleGameCenter}>
-          GameCenter Multiplayer
-        </Button>
+        <GradientButton
+          onPress={handleGameCenter}
+          title="GameCenter Multiplayer"
+          style={styles.middleButton}
+        />
       </View>
       <View style={styles.buttonContainer}>
-        <Button mode="contained" onPress={handleBluetooth}>
-          Bluetooth Local Multiplayer
-        </Button>
+        <GradientButton
+          onPress={handleBluetooth}
+          title="Bluetooth Local Multiplayer"
+          style={styles.middleButton}
+        />
       </View>
       <View style={styles.buttonContainer}>
-        <Button mode="contained" onPress={handleSharePhone}>
-          Sharing this iPhone
-        </Button>
+        <GradientButton
+          onPress={handleSharePhone}
+          title="Sharing this iPhone"
+          style={styles.middleButton}
+        />
       </View>
     </ImageBackground>
   );
@@ -50,6 +57,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   buttonContainer: {
+    justifyContent: 'center',
+    width: '100%',
+    alignItems: 'center',
+  },
+  middleButton: {
+    width: '50%',
     marginBottom: 20,
   },
 });

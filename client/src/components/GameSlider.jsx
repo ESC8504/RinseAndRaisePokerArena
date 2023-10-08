@@ -15,13 +15,15 @@ function GameSlider({ isVisible, onConfirm, onCancel, maxChips, bigBlind, player
   const isSmallBlindPreFlop = isPreFlop() && isCurrentPlayerSmallBlind();
   // Calculation for minimum raise value
   let minValue;
+  let difference;
   const effectiveStackSize = Math.min(maxChips, opponentAmountInFront + opponentData.chips);
   if (isSmallBlindPreFlop) {
     // only for small blind preflop player
     minValue = bigBlind + playerAmountInFront;
   } else {
     // min raise increment
-    minValue = opponentAmountInFront + (opponentAmountInFront - playerAmountInFront);
+    minValue = opponentAmountInFront + (opponentAmountInFront
+      - playerAmountInFront) - playerAmountInFront;
   }
   // Ensure min Raise Value is at least equal to bigBlind
   minValue = Math.max(minValue, bigBlind);

@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Alert, NativeModules, StyleSheet, ImageBackground } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import GradientButton from '../utils/GradientButton.jsx';
+import GradientButton from '../utils/GradientButton';
 
-function PlayerVsPlayerScreen() {
+const PlayerVsPlayerScreen: React.FC = () => {
   const navigation = useNavigation();
 
   const handleGameCenter = () => {
@@ -18,6 +18,7 @@ function PlayerVsPlayerScreen() {
   const handleSharePhone = () => {
     navigation.navigate('Game');
   };
+
 
   return (
     <ImageBackground source={require('../../../assets/front_screen.jpg')} style={styles.container}>

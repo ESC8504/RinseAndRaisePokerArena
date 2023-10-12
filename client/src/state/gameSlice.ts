@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { Alert } from 'react-native';
-import initialState from './gameInitialState.js';
+import initialState, { GameState, Player } from './gameInitialState';
 import {
   initializeDeck,
   dealCardsFromDeck,
@@ -8,14 +8,29 @@ import {
   updatePlayerChips,
   moveToNextPlayer,
   deductBlindAndSetAmountInFront,
-} from '../utils/gameHelper.js';
+} from '../utils/gameHelper';
+
+interface BetAction {
+  payload: number;
+}
+
+interface RaiseAction {
+  payload: number;
+}
+
+interface CalWinnerAction {
+  payload: {
+    winners: Player[];
+    players: Player[];
+  };
+}
 
 const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
     // Game Flow Reducers
-    dealCards(state) {
+    dealCards(state: GameState) {
       for (let player of state.players) {
         const { dealtCards, remainingDeck } = dealCardsFromDeck(state.deck, 2);
         player.cards = dealtCards;
@@ -26,7 +41,7 @@ const gameSlice = createSlice({
       state.currentPlayerIndex = state.blinds.bigBlindPlayerIndex;
       moveToNextPlayer(state);
     },
-    postBlinds(state) {
+    postBlinds(state: GameState) {
       const smallBlindPlayer = state.players[state.blinds.smallBlindPlayerIndex];
       const bigBlindPlayer = state.players[state.blinds.bigBlindPlayerIndex];
 
@@ -35,7 +50,7 @@ const gameSlice = createSlice({
 
       state.pot += state.blinds.small + state.blinds.big;
     },
-    rotateBlinds(state) {
+    rotateBlinds(state: GameState) {
       let newSmallBlindIndex = (state.blinds.smallBlindPlayerIndex + 1) % state.players.length;
       let newBigBlindIndex = (state.blinds.bigBlindPlayerIndex + 1) % state.players.length;
 
@@ -57,7 +72,7 @@ const gameSlice = createSlice({
 
       moveToNextPlayer(state);
     },
-    proceedToNextRound(state) {
+    proceedToNextRound(state: GameState) {
       let dealtCards = [];
       switch (state.round) {
         case 'pre-flop':
@@ -92,7 +107,7 @@ const gameSlice = createSlice({
       state.actionsInRound = 0;
     },
     // Player Actions Reducers
-    bet(state, action) {
+    bet(state: GameState, action: PayloadAction<BetAction>) {
       const betAmount = action.payload;
       const currentPlayer = state.players[state.currentPlayerIndex];
 
@@ -107,7 +122,7 @@ const gameSlice = createSlice({
       state.lastActedPlayerIndex = state.currentPlayerIndex;
       moveToNextPlayer(state);
     },
-    fold(state) {
+    fold(state: GameState) {
       const currentPlayer = state.players[state.currentPlayerIndex];
       currentPlayer.status = 'folded';
 
@@ -119,7 +134,7 @@ const gameSlice = createSlice({
       remainingPlayer.chips += state.pot;
       state.pot = 0;
     },
-    call(state) {
+    call(state: GameState) {
       const currentPlayer = state.players[state.currentPlayerIndex];
       const opponentIndex = state.currentPlayerIndex === 0 ? 1 : 0;
       const opponentPlayer = state.players[opponentIndex];
@@ -147,7 +162,7 @@ const gameSlice = createSlice({
         moveToNextPlayer(state);
       }
     },
-    check(state) {
+    check(state: GameState) {
       state.lastActedPlayerIndex = state.currentPlayerIndex;
       state.actionsInRound += 1;
       // If both players have acted and their bet amounts are equal, move to the next round
@@ -163,7 +178,7 @@ const gameSlice = createSlice({
         moveToNextPlayer(state);
       }
     },
-    raise(state, action) {
+    raise(state: GameState, action: PayloadAction<RaiseAction>) {
       const amount = action.payload;
       const currentPlayer = state.players[state.currentPlayerIndex];
 
@@ -185,22 +200,22 @@ const gameSlice = createSlice({
       }
     },
     // Setup Reducers
-    resetToPreflop(state) {
+    resetToPreflop(state: GameState) {
       state.round = 'pre-flop';
       gameSlice.caseReducers.reshuffle(state);
       gameSlice.caseReducers.rotateBlinds(state);
       gameSlice.caseReducers.dealCards(state);
     },
-    reshuffle(state) {
+    reshuffle(state: GameState) {
       state.deck = initializeDeck();
     },
-    restartGame(state) {
+    restartGame(state: GameState) {
       Object.assign(state, initialState);
       state.deck = initializeDeck();
     },
   },
   // Game Result Reducers
-  calWinner(state, action) {
+  calWinner(state: GameState, action: PayloadAction<CalWinnerAction>) {
     const { winners, players: resultPlayers } = action.payload;
     let updatedPlayers = [...state.players];
 

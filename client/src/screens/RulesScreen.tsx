@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Image } from 'react-native';
 
-function RulesScreen() {
+const RulesScreen: React.FC = () => {
   return (
     <View>
       <Image

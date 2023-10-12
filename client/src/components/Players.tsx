@@ -1,11 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder, Image, Modal, Button } from 'react-native';
-import cards from '../../../assets/cards/index.js';
+import cards from '../../../assets/cards/index';
 import dealerButton from '../../../assets/dealer_button.png';
-import Card from './Card.jsx';
-import GameSlider from './GameSlider.jsx'
-import GameControls from './GameControls.jsx';
+import Card from './Card';
+import GameSlider from './GameSlider'
+import GameControls from './GameControls';
 import { useDispatch, useSelector } from 'react-redux';
+import { Player, GameState, Blinds } from '../state/gameinitialstate';
 import {
   call,
   fold,
@@ -15,18 +16,24 @@ import {
   raise,
   postBlinds,
   restartGame,
-} from '../state/gameSlice.js';
+} from '../state/gameSlice';
 
-function Player({ playerData, gameBlinds, position }) {
+interface PlayersProps {
+  playerData: Player;
+  gameBlinds: Blinds;
+  position: 'top' | 'bottom';
+}
+
+const Players: React.FC<PlayersProps> = ({ playerData, gameBlinds, position }) => {
   const dispatch = useDispatch();
-  const gameState = useSelector(state => state.game);
+  const gameState = useSelector((state: { game: GameState }) => state.game);
   const currentPlayerData = gameState.players[gameState.currentPlayerIndex];
   const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
   const opponentData = gameState.players[opponentIndex];
 
   const isCurrentPlayer = gameState.currentPlayerIndex === (position === 'top' ? 0 : 1);
-  const [isSliderVisible, setSliderVisible] = useState(false);
-  const [sliderValue, setSliderValue] = useState(0);
+  const [isSliderVisible, setSliderVisible] = useState<boolean>(false);
+  const [sliderValue, setSliderValue] = useState<number>(0);
   // Use a reference to store the Animated values for X and Y positions.
   const animatedValues = useRef(new Animated.ValueXY()).current;
   // Array of refs hold Value for each card, initially set to -200 (outside of the screen).
@@ -245,4 +252,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Player;
+export default Players;

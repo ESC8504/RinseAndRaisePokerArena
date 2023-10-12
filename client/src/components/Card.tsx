@@ -1,8 +1,14 @@
 import React, { useRef, useState } from 'react';
 import { Animated, Image, StyleSheet } from 'react-native';
-import cards from '../../../assets/cards/index.js';
+import cards from '../../../assets/cards/index';
 
-function Card({ cardCode, isFaceUp, animatedValue }) {
+interface CardProps {
+  cardCode: string;
+  isFaceUp: boolean;
+  animatedValue: Animated.Value;
+}
+
+const Card: React.FC<CardProps> = ({ cardCode, isFaceUp, animatedValue }) => {
   // Define opacity transition for the back of the card,
   // depending on animatedValue (pan gesture's x coordinate).
   const cardOpacity = animatedValue.interpolate({

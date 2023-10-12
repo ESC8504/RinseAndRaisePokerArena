@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, StyleSheet, Text, ImageBackground } from 'react-native';
-import { Video} from 'expo-av';
+import { Video } from 'expo-av';
 
-function AboutScreen() {
+const AboutScreen: React.FC = () => {
   return (
     <ImageBackground source={require('../../../assets/front_screen.jpg')} style={styles.backgroundImage}>
       <View style={styles.container}>

@@ -3,11 +3,11 @@ import { View, StyleSheet, ImageBackground, Image } from 'react-native';
 import { Asset } from 'expo-asset';
 import { Button, Text } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import GradientButton from '../utils/GradientButton.jsx';
+import GradientButton from '../utils/GradientButton';
 
 const background = require('../../../assets/front_screen.jpg');
 
-function HomeScreen() {
+const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
   // Preload background image
   const preload = async () => {
@@ -15,6 +15,7 @@ function HomeScreen() {
       background,
     ]);
   };
+
   useEffect(() => {
     preload();
   }, []);

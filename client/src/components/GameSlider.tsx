@@ -2,20 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Modal, Button, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { useDispatch, useSelector } from 'react-redux';
+import { GameState } from '../state/gameinitialstate';
 
-function GameSlider({ isVisible, onConfirm, onCancel, maxChips, bigBlind, playerAmountInFront,
-  opponentAmountInFront}) {
+interface GameSliderProps {
+  isVisible: boolean;
+  onConfirm: (value: number) => void;
+  onCancel: () => void;
+  maxChips: number;
+  bigBlind: number;
+  playerAmountInFront: number;
+  opponentAmountInFront: number;
+}
+
+const GameSlider: React.FC<GameSliderProps> = ({ isVisible, onConfirm, onCancel, maxChips, bigBlind, playerAmountInFront, opponentAmountInFront}) => {
   const dispatch = useDispatch();
-  const gameState = useSelector(state => state.game);
+  const gameState = useSelector((state: { game: GameState }) => state.game);
   const opponentIndex = gameState.currentPlayerIndex === 0 ? 1 : 0;
   const opponentData = gameState.players[opponentIndex];
   const isCurrentPlayerSmallBlind = () => gameState.currentPlayerIndex === gameState.blinds.smallBlindPlayerIndex;
   const isPreFlop = () => gameState.round === 'pre-flop';
-
   const isSmallBlindPreFlop = isPreFlop() && isCurrentPlayerSmallBlind();
   // Calculation for minimum raise value
-  let minValue;
-  let difference;
+  let minValue: number;
   const effectiveStackSize = Math.min(maxChips, opponentAmountInFront + opponentData.chips);
   if (isSmallBlindPreFlop) {
     // only for small blind preflop player

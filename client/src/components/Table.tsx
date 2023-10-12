@@ -1,8 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
-import cards from '../../../assets/cards/index.js';
+import cards from '../../../assets/cards/index';
 
-function Table({ communityCards, pot }) {
+interface TableProps {
+  communityCards: string[];
+  pot: number;
+}
+
+const Table: React.FC<TableProps> = ({ communityCards, pot }) => {
   return (
     <View style={styles.table}>
       <View style={styles.cardsContainer}>

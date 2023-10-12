@@ -1,6 +1,37 @@
-import { initializeDeck } from '../utils/gameHelper.js';
+import { initializeDeck } from '../utils/gameHelper';
 
-const initialState = {
+export type Player = {
+  name: string;
+  chips: number;
+  currentBet: number;
+  amountInFront: number;
+  status: any;
+  cards: string[];
+  handResult: null | string;
+  bestHand: null | string;
+  isAllIn: boolean;
+};
+
+export type Blinds = {
+  small: number;
+  big: number;
+  smallBlindPlayerIndex: number;
+  bigBlindPlayerIndex: number;
+};
+
+export type GameState = {
+  players: Player[];
+  currentPlayerIndex: number;
+  actionsInRound: number;
+  lastActedPlayerIndex: null | number;
+  communityCards: string[];
+  pot: number;
+  round: 'pre-flop' | 'flop' | 'turn' | 'river' | 'showdown';
+  blinds: Blinds;
+  deck: string[];
+};
+
+const initialState: GameState = {
   players: [
     {
       name: 'Player 1',

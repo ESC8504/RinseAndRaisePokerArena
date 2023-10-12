@@ -2,7 +2,13 @@ import React from 'react';
 import { Text, TouchableOpacity, StyleSheet, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const GradientButton = ({ onPress, title, style }) => (
+interface GradientButtonProps {
+  onPress: () => void;
+  title: string;
+  style?: StyleProp<ViewStyle>;
+}
+
+const GradientButton: React.FC<GradientButtonProps> = ({ onPress, title, style }) => (
   <TouchableOpacity onPress={onPress} style={style}>
     <View style={styles.buttonParent}>
       {/* Blue and green */}
@@ -34,5 +40,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
+
 
 export default GradientButton;

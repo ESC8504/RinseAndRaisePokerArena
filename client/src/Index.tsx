@@ -1,17 +1,16 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-// import { GameStateProvider } from './contexts/GameStateContext.jsx';
 import { Provider } from 'react-redux';
-import store from './state/store.js';
-import HomeScreen from './screens/HomeScreen.jsx';
-import GameScreen from './screens/GameScreen.jsx';
-import RulesScreen from './screens/RulesScreen.jsx';
-import AboutScreen from './screens/AboutScreen.jsx';
-import PlayerVsPlayerScreen from './screens/PlayerVsPlayerScreen.jsx';
+import store from './state/store';
+import HomeScreen from './screens/HomeScreen';
+import GameScreen from './screens/GameScreen';
+import RulesScreen from './screens/RulesScreen';
+import AboutScreen from './screens/AboutScreen';
+import PlayerVsPlayerScreen from './screens/PlayerVsPlayerScreen';
 
 const Stack = createStackNavigator();
-function App() {
+const App: React.FC = () => {
   return (
     <Provider store={store}>
       <NavigationContainer>

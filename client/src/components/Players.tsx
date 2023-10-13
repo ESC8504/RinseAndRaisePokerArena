@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Animated, PanResponder, Image, Modal, Button } from 'react-native';
 import cards from '../../../assets/cards/index';
 import dealerButton from '../../../assets/dealer_button.png';
+import chipsImage from '../../../assets/chips.png';
 import Card from './Card';
 import GameSlider from './GameSlider'
 import GameControls from './GameControls';
@@ -151,9 +152,13 @@ const Players: React.FC<PlayersProps> = ({ playerData, gameBlinds, position }) =
   return (
     <>
       <View style={[styles.player, playerStyle]} {...panResponder.panHandlers}>
-        <Text style={styles.indicator}>Amount In Front: {playerData.amountInFront}</Text>
         {/* conditional rendering */}
-        {isCurrentPlayer && <Text style={styles.indicator}>Your Turn</Text>}
+        {playerData.amountInFront > 0 && (
+          <View style={styles.chipContainer}>
+            <Image source={chipsImage} style={styles.chipsImage} />
+            <Text style={styles.chipText}>{playerData.amountInFront}</Text>
+          </View>
+        )}
 
         <View style={styles.cardsAndControlsContainer}>
           <View style={styles.cardsContainer}>
@@ -165,8 +170,8 @@ const Players: React.FC<PlayersProps> = ({ playerData, gameBlinds, position }) =
           </View>
 
           {isSmallBlindPlayer && (
-          <Image source={dealerButton} style={styles.dealerButton} />
-        )}
+            <Image source={dealerButton} style={styles.dealerButton} />
+          )}
 
           {isCurrentPlayer && (
             <View style={styles.gameControls}>
@@ -184,8 +189,8 @@ const Players: React.FC<PlayersProps> = ({ playerData, gameBlinds, position }) =
         </View>
 
         <Text style={styles.whiteText}>Chips: {playerData.chips}</Text>
-        <Text style={styles.whiteText}>Current Bet: {playerData.currentBet}</Text>
-        <Text style={styles.whiteText}>Status: {playerData.status}</Text>
+        {/* <Text style={styles.whiteText}>Current Bet: {playerData.currentBet}</Text> */}
+        {/* <Text style={styles.whiteText}>Status: {playerData.status}</Text> */}
         { gameState.round === 'showdown' && (
           <>
             <Text style={styles.whiteText}>Result Hand: {playerResultHand}</Text>
@@ -249,6 +254,34 @@ const styles = StyleSheet.create({
   dealerButton: {
     width: 40,
     height: 40,
+  },
+  chipContainer: {
+    position: 'relative',
+    width: 50,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft:20,
+    marginRight: 20,
+    marginBottom: 10,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'grey',
+    overflow: 'hidden',
+  },
+  chipsImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  chipText: {
+    position: 'absolute',
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: -1, height: 1 },
+    textShadowRadius: 10,
   },
 });
 

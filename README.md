@@ -58,9 +58,9 @@ This game is not only a tribute to the creative solution but also a handy tool f
 - User-friendly interface with smooth gameplay.
 - Decide on daily chores in a fun way.
 <p float="left">
-  <img src="./assets/screenShots/homeScreen.png" alt="Game Screenshot1" width="300" />
+  <img src="./assets/screenShots/homeScreen2.png" alt="Game Screenshot1" width="300" />
   <img src="./assets/screenShots/aboutScreen.png" alt="Game Screenshot2" width="300" /> 
-  <img src="./assets/screenShots/gameScreen.png" alt="Game Screenshot3" width="300" />
+  <img src="./assets/screenShots/gameScreen2.png" alt="Game Screenshot3" width="300" />
 </p>
 
 
